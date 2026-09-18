@@ -6,7 +6,7 @@ title x402 Local Server - Keep This Window Open
 echo Starting x402 with normal Robinhood RPC access...
 echo Keep this window open while testing.
 echo.
-node --watch server.js
+npm run dev
 echo.
 echo The server stopped. Press any key to close this window.
 pause >nul

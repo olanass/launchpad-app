@@ -11,9 +11,42 @@ Use Node.js 22 or newer.
 3. Set `PUBLIC_BASE_URL` to the externally accessible origin. Configure token contracts explicitly if accepting USDC, WETH, or another supported token. The default supports native ETH.
 4. Optionally set `PRIVY_APP_ID` for authenticated browser wallet login.
 5. Run `npm start`. This first builds the wallet bundle, then starts the server on port 4020.
-6. Run `npm test` for isolated tests. They do not need RPC access, real wallet keys, or funds.
+6. Use `npm run dev` for local development with automatic server restarts.
+7. Run `npm test` for isolated tests. They do not need RPC access, real wallet keys, or funds.
 
-The generated Privy bundle is built from `privy-bridge-src.jsx` using the pinned esbuild WebAssembly compiler, which avoids native executable filesystem-access failures on this Windows environment. Run `npm run build` after editing that source. Direct browser wallets remain available when Privy is unavailable.
+The generated Privy bundle is built from `src/client/integrations/privy-bridge.jsx` using the pinned esbuild WebAssembly compiler. Run `npm run build` after editing that source. Direct browser wallets remain available when Privy is unavailable.
+
+## Robinhood Chain Testnet
+
+To run mainnet and testnet together with the website network selector, use:
+
+```bash
+npm run dev:networks
+```
+
+This starts the isolated mainnet app on `http://localhost:4020` and testnet app on `http://localhost:4021`. The selector switches the connected wallet first, then moves to the matching app. Set `ROBINHOOD_MAINNET_APP_URL` and `ROBINHOOD_TESTNET_APP_URL` when the two environments are deployed at different public URLs.
+
+Run the application against Robinhood Chain Testnet with:
+
+```powershell
+npm run dev:testnet
+```
+
+The testnet configuration uses chain ID `46630`, the public testnet RPC, the testnet explorer, and a separate `uploads-testnet` data directory. The wallet button will add or switch MetaMask to the correct network, and the UI displays an amber testnet warning.
+
+ETH is available by default as the testnet payment currency. Configure ERC-20 currencies only with verified testnet contract addresses using the `ROBINHOOD_TESTNET_*_CONTRACT_ADDRESS` variables. Testnet assets have no monetary value and must never be represented as mainnet funds.
+
+For a dedicated testnet environment file, copy `.env.testnet.example` to `.env` only if you do not need to preserve an existing `.env`. Otherwise, add the desired testnet variables to the existing file and keep its vault secret.
+
+## Project structure
+
+- `src/client`: browser assets, application script, styles, and wallet integration.
+- `src/server`: API routes, payment verification, paywall services, and encrypted storage.
+- `tests`: regression and live smoke tests.
+- `scripts`: build-time utilities.
+- `docs`: architecture and maintenance documentation.
+
+See [`docs/architecture.md`](docs/architecture.md) for module boundaries and data flow.
 
 ## Payment behavior
 
@@ -90,5 +123,5 @@ Existing listings using old placeholder token addresses must be reviewed and con
 
 The repair tests use mocked chain responses and browser providers. They cover validation, transfer matching, replay handling, persistence, private previews, encrypted text/binary downloads, checkout retry behavior, delivery preflight, wallet fallback, and chain switching. The compiled bundle and local Privy login modal have been checked. Authenticated Privy login, real wallet extensions, and live payment settlement still require end-to-end validation before use with funds.
 
-Network settings retain chain ID 4663 and the mainnet RPC described in [Robinhood's network documentation](https://docs.robinhood.com/chain/add-network-to-wallet/).
+Network settings support mainnet chain ID `4663` and testnet chain ID `46630` as described in [Robinhood's network documentation](https://docs.robinhood.com/chain/add-network-to-wallet/).
 

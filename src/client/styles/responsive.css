@@ -1,0 +1,207 @@
+/* ==========================================================================
+   Collapsible Advance Options Section
+   ========================================================================== */
+.advance-section-wrapper {
+  margin-top: 14px;
+  border-top: 1px dashed var(--border-light);
+  padding-top: 12px;
+}
+
+.btn-advance-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  padding: 10px 14px;
+  color: var(--text-main);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.btn-advance-toggle:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: var(--brand-primary);
+}
+
+.advance-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.advance-chevron {
+  font-size: 10px;
+  color: var(--text-subtle);
+  transition: transform 0.2s ease;
+}
+
+.btn-advance-toggle.open .advance-chevron {
+  transform: rotate(180deg);
+}
+
+.advance-dropdown-body {
+  padding: 4px 2px 8px;
+  animation: advanceSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes advanceSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsiveness
+   ========================================================================== */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 8px 0;
+  }
+
+  .header-inner {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .header-brand {
+    order: 1;
+  }
+
+  .header-right {
+    order: 2;
+    gap: 8px;
+  }
+
+  .header-center {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+    padding: 3px;
+    margin-top: 4px;
+  }
+
+  .nav-links.header-center .nav-btn {
+    flex: 1;
+    text-align: center;
+    padding: 7px 6px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  .network-pill {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .network-selector-label {
+    display: none;
+  }
+
+  .network-selector {
+    padding-left: 8px;
+  }
+
+  .btn-connect {
+    padding: 7px 12px;
+    font-size: 12.5px;
+  }
+
+  .app-main {
+    padding: 20px 12px 40px;
+  }
+
+  .studio-container {
+    padding: 0 4px;
+  }
+
+  .studio-title {
+    font-size: 22px;
+    letter-spacing: -0.4px;
+  }
+
+  .studio-desc {
+    font-size: 13.5px;
+  }
+
+  .form-card {
+    padding: 20px 14px;
+    border-radius: 18px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-group.col-half {
+    width: 100%;
+  }
+
+  .upload-zone {
+    padding: 26px 14px;
+  }
+
+  .gas-card-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .checkout-container {
+    padding: 0 4px;
+  }
+
+  .checkout-card {
+    padding: 20px 14px;
+    border-radius: 20px;
+  }
+
+  .table-card {
+    border-radius: 16px;
+  }
+
+  .links-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .network-pill {
+    display: none;
+  }
+
+  .brand-text .brand-chain {
+    display: none;
+  }
+
+  .brand-title {
+    font-size: 15px;
+  }
+
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .app-notice-card {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+}

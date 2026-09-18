@@ -1,16 +1,19 @@
 const esbuild = require('esbuild-wasm');
 const path = require('path');
 
+const projectRoot = path.resolve(__dirname, '..');
+const clientDir = path.join(projectRoot, 'src', 'client');
+
 async function bundlePrivy() {
-  console.log('⚡ Bundling official @privy-io/react-auth connector...');
+  console.log('Bundling the @privy-io/react-auth connector...');
   try {
     await esbuild.build({
-      absWorkingDir: path.join(__dirname, '..'),
+      absWorkingDir: projectRoot,
       tsconfigRaw: {},
-      entryPoints: [path.join(__dirname, '..', 'packages', 'public', 'privy-bridge-src.jsx')],
+      entryPoints: [path.join(clientDir, 'integrations', 'privy-bridge.jsx')],
       bundle: true,
       nodePaths: (process.env.NODE_PATH || '').split(path.delimiter).filter(Boolean),
-      outfile: path.join(__dirname, '..', 'packages', 'public', 'privy-bridge.bundle.js'),
+      outfile: path.join(clientDir, 'generated', 'privy-bridge.bundle.js'),
       format: 'iife',
       globalName: 'PrivyBridge',
       platform: 'browser',
@@ -21,9 +24,9 @@ async function bundlePrivy() {
       minify: true,
       sourcemap: false
     });
-    console.log('✅ Successfully bundled Privy official bridge -> packages/public/privy-bridge.bundle.js');
+    console.log('Privy bridge created at src/client/generated/privy-bridge.bundle.js');
   } catch (err) {
-    console.error('❌ Build failed:', err);
+    console.error('Privy bridge build failed:', err);
     process.exit(1);
   }
 }

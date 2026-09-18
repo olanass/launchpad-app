@@ -1,10 +1,13 @@
 node_modules/
+.npm-cache/
+.local/
 
 .env
 .env.*
 !.env.example
 
 uploads/
+uploads-testnet/
 
 *.log
 npm-debug.log*
@@ -12,6 +15,7 @@ npm-debug.log*
 coverage/
 dist/
 .cache/
+src/client/generated/
 
 .DS_Store
 Thumbs.db
