@@ -6,6 +6,7 @@ function initNavigation() {
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
+      history.pushState(null, '', '/');
       switchView(view);
     });
   });
@@ -20,13 +21,14 @@ function initNavigation() {
     navHome.addEventListener('click', (e) => {
       e.preventDefault();
       history.pushState(null, '', '/');
-      switchView('create');
+      switchView('service-launch');
     });
   }
 }
 
 function switchView(viewName) {
   state.activeView = viewName;
+  document.body.dataset.view = viewName;
   document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
@@ -38,5 +40,7 @@ function switchView(viewName) {
 
   if (viewName === 'mylinks') {
     fetchMyLinks();
+    fetchMyServices();
   }
+  if (viewName === 'marketplace') loadServiceMarketplace();
 }

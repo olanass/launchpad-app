@@ -34,7 +34,7 @@ const state = {
   selectedFile: null,
   liveGasEstimate: null,
   currentPaywall: null,
-  activeView: 'create',
+  activeView: 'service-launch',
   checkoutMode: 'web3', // 'web3' | 'sandbox'
   isOnRobinhood: true
 };
@@ -84,6 +84,7 @@ async function loadNetworkConfig() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  document.title = 'x402 Launchpad - Paid APIs on Robinhood Chain';
   initAppNoticeModal();
   await loadNetworkConfig();
   initNetworkSelector();
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFileUpload();
   initGasPolling();
   initPaywallCreation();
+  initServiceLaunchpad();
   initPaywallViewRouting();
   initNetworkStatusListener();
   initDocsPortal();

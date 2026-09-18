@@ -29,16 +29,17 @@
             <img src="/assets/logo.jpg" alt="Logo" class="brand-logo-img" />
           </div>
           <div class="brand-text">
-            <span class="brand-title">x402 Paywall</span>
-            <span class="brand-chain">Robinhood Chain L2</span>
+            <span class="brand-title">x402 Launchpad</span>
+            <span class="brand-chain">APIs that pay</span>
           </div>
         </a>
       </div>
 
       <nav class="nav-links header-center">
-        <button class="nav-btn active" id="tabNavCreate" data-view="create">Create Paywall</button>
-        <button class="nav-btn" id="tabNavMyLinks" data-view="mylinks">My Links</button>
-        <button class="nav-btn" id="tabNavDocs" data-view="docs">Documentation</button>
+        <button class="nav-btn active" id="tabNavLaunch" data-view="service-launch">Launch API</button>
+        <button class="nav-btn" id="tabNavExplore" data-view="marketplace">Explore</button>
+        <button class="nav-btn" id="tabNavCreate" data-view="create">Sell files</button>
+        <button class="nav-btn" id="tabNavMyLinks" data-view="mylinks">My projects</button>
       </nav>
 
       <div class="header-right">
@@ -122,9 +123,124 @@
 
   <!-- Main Content Layout -->
   <main class="app-main">
+    <section id="view-service-launch" class="app-view active">
+      <div class="launch-shell">
+        <div class="launch-hero">
+          <div class="launch-hero-copy">
+            <div class="launch-kicker"><span></span> The API launchpad for Robinhood Chain</div>
+            <h1>Turn any endpoint into a <em>paid product.</em></h1>
+            <p>Paste your API URL, set a tiny per-request price, and launch. We handle the x402 payment wall, settlement, public listing, and usage analytics.</p>
+            <div class="launch-hero-actions">
+              <button type="button" class="btn-launch-primary" id="btnHeroStart">Launch your API <span>↗</span></button>
+              <button type="button" class="btn-launch-secondary" id="btnHeroExplore">Explore live APIs</button>
+            </div>
+            <div class="launch-proofline"><span><b>01</b> Paste endpoint</span><i></i><span><b>02</b> Set price</span><i></i><span><b>03</b> Start earning</span></div>
+          </div>
+          <div class="launch-hero-art" aria-label="Example x402 API request card">
+            <span class="paper-sticker sticker-top">HTTP 402 ✓</span>
+            <span class="paper-sticker sticker-side">FOR AGENTS</span>
+            <div class="request-window">
+              <div class="request-window-bar"><span></span><span></span><span></span><small>weather-ai / request</small></div>
+              <div class="request-code"><div><b class="code-method">POST</b> <span>/x402/weather-ai</span></div><div class="code-muted">content-type: application/json</div><div class="code-body">{ <span>"city"</span>: "Bengaluru" }</div></div>
+              <div class="request-result"><span class="result-check">✓</span><div><strong>Payment settled</strong><small>0.002 USDC · 184ms</small></div><b>200 OK</b></div>
+            </div>
+            <div class="earning-note"><span>today</span><strong>+ $76.84</strong><small>38,420 paid calls</small></div>
+          </div>
+        </div>
+
+        <div class="launch-benefit-strip"><span>Direct wallet payouts</span><i>✦</i><span>Zero platform fee</span><i>✦</i><span>Built-in analytics</span><i>✦</i><span>Agent-ready access</span></div>
+
+        <div class="service-success" id="serviceSuccess" hidden>
+          <div class="service-success-mark">✓</div><div><span>API launched</span><strong id="serviceSuccessName">Your service is live</strong><p id="serviceSuccessUrl"></p></div>
+          <div class="service-success-actions"><button type="button" id="btnCopyServiceUrl">Copy endpoint</button><a id="serviceSuccessPage" href="#">View page ↗</a></div>
+        </div>
+
+        <div class="launch-builder" id="launchBuilder">
+          <div class="launch-form-panel">
+            <div class="builder-heading"><span>Launch details</span><b>01</b></div>
+            <div class="service-form-grid">
+              <div class="form-group service-span-2">
+                <label>API logo <span>Optional · 512 KB max</span></label>
+                <div class="service-logo-uploader" id="serviceLogoUploader">
+                  <input id="serviceLogoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+                  <button type="button" class="service-logo-button" id="btnChooseServiceLogo"><span class="service-logo-placeholder" id="serviceLogoPreview">W</span><div><strong>Upload product logo</strong><small>PNG, JPEG or WebP · square works best</small></div><b>Choose file</b></button>
+                  <button type="button" class="service-logo-remove" id="btnRemoveServiceLogo" hidden>Remove</button>
+                </div>
+              </div>
+              <div class="form-group service-span-2"><label for="serviceEndpoint">Your API endpoint <span>Required</span></label><div class="endpoint-input-wrap"><span>↗</span><input id="serviceEndpoint" class="form-control" type="url" placeholder="https://api.yoursite.com/generate" autocomplete="url"></div><small>We keep this URL private and create a protected public gateway.</small></div>
+              <div class="form-group"><label for="serviceName">Product name</label><input id="serviceName" class="form-control" maxlength="120" placeholder="WeatherAI"></div>
+              <div class="form-group"><label for="serviceCategory">Category</label><select id="serviceCategory" class="form-control"><option>AI & Models</option><option>Data</option><option>Developer Tools</option><option>Finance</option><option>Media</option><option>Other</option></select></div>
+              <div class="form-group service-span-2"><label for="serviceDescription">One-line description</label><input id="serviceDescription" class="form-control" maxlength="2000" placeholder="AI-ready weather data for apps and autonomous agents"></div>
+              <div class="form-group service-span-2"><label for="serviceVideoUrl">Demo video link <span>Optional</span></label><div class="endpoint-input-wrap video-input-wrap"><span>▶</span><input id="serviceVideoUrl" class="form-control" type="url" maxlength="1000" placeholder="https://youtube.com/watch?v=..." autocomplete="url"></div><small>Add a YouTube, Vimeo, Loom, or public video URL to your project page.</small></div>
+            </div>
+            <div class="builder-divider"></div>
+            <div class="builder-heading"><span>Access & pricing</span><b>02</b></div>
+            <div class="service-form-grid">
+              <div class="form-group service-span-2"><label>Allowed methods</label><div class="method-picker"><label><input type="checkbox" name="serviceMethod" value="GET"><span>GET</span></label><label><input type="checkbox" name="serviceMethod" value="POST" checked><span>POST</span></label><label><input type="checkbox" name="serviceMethod" value="PUT"><span>PUT</span></label><label><input type="checkbox" name="serviceMethod" value="PATCH"><span>PATCH</span></label><label><input type="checkbox" name="serviceMethod" value="DELETE"><span>DELETE</span></label></div></div>
+              <div class="form-group"><label for="servicePrice">Price per request</label><div class="price-input-wrap"><span>$</span><input id="servicePrice" class="form-control" inputmode="decimal" value="0.002" placeholder="0.002"></div></div>
+              <div class="form-group"><label for="serviceCurrency">Payment token</label><select id="serviceCurrency" class="form-control"><option value="USDC">USDC</option></select></div>
+              <div class="service-network-card service-span-2"><div class="robinhood-orb">R</div><div><span>Payment network</span><strong id="serviceNetworkName">Robinhood Chain</strong><small id="serviceNetworkMeta">Chain ID 4663 · Direct to your wallet</small></div><b><i></i> Active</b></div>
+            </div>
+            <button type="button" class="service-publish-btn" id="btnPublishService"><span>Sign & launch API</span><b>↗</b></button>
+            <p class="service-publish-note">Your wallet signature proves ownership. Publishing does not move funds.</p>
+          </div>
+
+          <aside class="service-preview-panel">
+            <div class="preview-heading"><span>Live public preview</span><i></i></div>
+            <div class="api-product-card preview-product-card">
+              <div class="product-card-top"><span class="product-category" id="previewServiceCategory">AI & Models</span><span class="product-live"><i></i> Live</span></div>
+              <div class="product-icon" id="previewServiceIcon">W</div><h3 id="previewServiceName">WeatherAI</h3><p id="previewServiceDescription">AI-ready weather data for apps and autonomous agents.</p>
+              <div class="product-metrics"><div><span>Price</span><strong id="previewServicePrice">$0.002</strong><small>/ request</small></div><div><span>Network</span><strong>Robinhood</strong><small id="previewServiceToken">USDC</small></div></div>
+              <div class="product-card-foot"><span><i></i> Ready for agents</span><button type="button" disabled>View API ↗</button></div>
+            </div>
+            <div class="preview-assurance"><span>✓ Endpoint stays private</span><span>✓ Payouts go direct</span><span>✓ Replay protected</span></div>
+            <span class="paper-sticker preview-sticker">0% FEE</span>
+          </aside>
+        </div>
+      </div>
+    </section>
     
+    <section id="view-marketplace" class="app-view">
+      <div class="market-shell">
+        <div class="market-header">
+          <div><span class="market-kicker">PUBLIC API MARKETPLACE</span><h1>Useful APIs.<br><em>Pay as you call.</em></h1></div>
+          <div class="market-header-copy"><p>Discover developer tools built for humans, apps, and autonomous agents. No subscriptions. No API-key checkout.</p><button type="button" id="btnMarketLaunch">Launch your own ↗</button></div>
+        </div>
+        <div class="market-toolbar">
+          <label><span>⌕</span><input id="serviceSearch" placeholder="Search APIs, tools, data..."></label>
+          <div class="market-filters" id="marketFilters"><button class="active" data-category="">All</button><button data-category="AI & Models">AI & Models</button><button data-category="Data">Data</button><button data-category="Developer Tools">Developer tools</button></div>
+        </div>
+        <div class="market-grid" id="serviceMarketGrid"><div class="market-loading">Loading the launchpad...</div></div>
+      </div>
+    </section>
+
+    <section id="view-service-detail" class="app-view">
+      <div class="service-detail-shell">
+        <button type="button" class="detail-back" id="btnServiceBack">← Explore APIs</button>
+        <div class="detail-hero">
+          <div class="detail-main">
+            <div class="detail-badges"><span id="detailCategory">API</span><b><i></i> <span id="detailStatus">Live</span></b></div>
+            <div class="detail-title-row"><div class="detail-icon" id="detailIcon">W</div><div><h1 id="detailName">WeatherAI</h1><p id="detailDescription">AI-ready weather data API</p></div></div>
+            <div class="detail-stats"><div><span>Price</span><strong id="detailPrice">$0.002</strong><small>/ request</small></div><div><span>Network</span><strong id="detailNetwork">Robinhood</strong><small id="detailToken">USDC</small></div><div><span>Paid requests</span><strong id="detailRequests">0</strong><small>all time</small></div><div><span>Revenue</span><strong id="detailRevenue">$0.00</strong><small>creator earned</small></div></div>
+          </div>
+          <aside class="detail-use-card">
+            <span class="detail-card-label">Protected endpoint</span>
+            <div class="detail-endpoint"><code id="detailEndpoint">/x402/weather-ai</code><button type="button" id="btnCopyDetailEndpoint">Copy</button></div>
+            <div class="detail-methods" id="detailMethods"><span>POST</span></div>
+            <a class="detail-video-link" id="detailVideoLink" href="#" target="_blank" rel="noopener noreferrer" hidden><span>▶</span><div><strong>Watch demo</strong><small>See this API in action</small></div><b>↗</b></a>
+            <button type="button" class="detail-copy-main" id="btnCopyCurl">Copy request example <span>↗</span></button>
+            <small>First call returns a standard HTTP 402 payment challenge.</small>
+          </aside>
+        </div>
+        <div class="detail-content-grid">
+          <div class="detail-code-card"><div><span>Quick start</span><b>cURL</b></div><pre id="detailCurl">curl -i -X POST "https://example.com/x402/weather-ai"</pre></div>
+          <div class="detail-info-card"><span>Built for reliable payment</span><ul><li><i>✓</i><div><strong>Direct settlement</strong><small>Every payment goes to the creator wallet.</small></div></li><li><i>✓</i><div><strong>Replay protected</strong><small>One payment proof invokes one API request.</small></div></li><li><i>✓</i><div><strong>Public metrics</strong><small>Usage and revenue are transparently reported.</small></div></li></ul></div>
+        </div>
+      </div>
+    </section>
+
     <!-- VIEW 1: CREATOR STUDIO (UPLOAD & CREATE PAYWALL) -->
-    <section id="view-create" class="app-view active">
+    <section id="view-create" class="app-view">
       <div class="studio-container">
         
         <div class="creator-visuals creator-visuals-left" aria-hidden="true">
@@ -471,12 +587,22 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
         
         <div class="studio-header-row">
           <div>
-            <h1 class="studio-title">My Paywalled Links</h1>
-            <p class="studio-desc">Manage all active paywalls created by your connected Robinhood Chain wallet.</p>
+            <h1 class="studio-title">My projects</h1>
+            <p class="studio-desc">Your launched APIs and paywalled files in one place.</p>
           </div>
           <button class="btn btn-primary btn-sm" id="btnCreateNew">＋ Create New Paywall</button>
         </div>
 
+        <div class="project-section-head"><div><span>API services</span><small>Metered endpoints earning per request</small></div><button type="button" class="btn btn-primary btn-sm" id="btnLaunchNewService">Launch API</button></div>
+        <div class="card table-card service-project-card">
+          <div class="table-responsive">
+            <table class="data-table"><thead><tr><th>Service</th><th>Price</th><th>Requests</th><th>Revenue</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="serviceProjectsTableBody"><tr><td colspan="6" class="text-center text-muted" style="padding:32px">Connect your wallet to view API services.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="project-section-head file-project-head"><div><span>Digital files</span><small>Protected downloads and content</small></div></div>
         <div class="card table-card">
           <div class="table-responsive">
             <table class="data-table">
@@ -578,6 +704,7 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
   <script src="/scripts/wallet.js?v=20260918-server-verification"></script>
   <script src="/scripts/gas.js?v=20260918-server-verification"></script>
   <script src="/scripts/creator.js?v=20260918-server-verification"></script>
+  <script src="/scripts/services.js?v=20260918-launchpad"></script>
   <script src="/scripts/checkout.js?v=20260918-server-verification"></script>
   <script src="/scripts/dashboard.js?v=20260918-server-verification"></script>
   <!-- Privy Auth (deferred — only needed for email login, not MetaMask payments) -->

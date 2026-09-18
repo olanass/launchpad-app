@@ -9,6 +9,7 @@ const { ROBINHOOD_CHAIN_CONFIG } = require('./config/chain');
 const demoApiRouter = require('./demo/routes');
 const facilitatorRouter = require('./facilitator/facilitator');
 const paywallRouter = require('./paywall/routes');
+const { publicRouter: serviceRouter, gatewayRouter: serviceGatewayRouter } = require('./services/routes');
 
 const app = express();
 
@@ -16,12 +17,17 @@ app.use(cors({
   origin: '*',
   exposedHeaders: ['PAYMENT-REQUIRED', 'PAYMENT-RESPONSE', 'WWW-Authenticate']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const jsonParser = express.json();
+const serviceJsonParser = express.json({ limit: '1mb' });
+const urlencodedParser = express.urlencoded({ extended: true });
+app.use((req, res, next) => (req.path.startsWith('/x402/') || req.path.startsWith('/api/services')) ? next() : jsonParser(req, res, next));
+app.use((req, res, next) => req.path.startsWith('/x402/') ? next() : urlencodedParser(req, res, next));
 
 app.use('/facilitator', facilitatorRouter);
 if (ROBINHOOD_CHAIN_CONFIG.demoMode) app.use('/api', demoApiRouter);
 app.use('/api/paywalls', paywallRouter);
+app.use('/api/services', serviceJsonParser, serviceRouter);
+app.use('/x402', serviceGatewayRouter);
 app.use('/api/privy', privyAuthRouter);
 app.use('/agent-runner', agentRouter);
 

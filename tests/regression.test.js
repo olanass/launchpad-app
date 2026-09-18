@@ -11,6 +11,7 @@ const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'x402-regression-'));
 process.env.X402_DATA_DIR = dataDir;
 process.env.X402_DEMO_MODE = 'true';
 process.env.NODE_ENV = 'test';
+process.env.X402_TEST_ALLOW_PRIVATE_ENDPOINTS = 'true';
 process.env.VAULT_MASTER_SECRET = crypto.randomBytes(32).toString('hex');
 process.env.PINATA_JWT = '';
 const { ethers } = require('ethers');
@@ -20,6 +21,8 @@ const { verifyPayment, claimMessage, EIP712_DOMAIN, EIP712_TYPES } = require('..
 const { settlePayment } = require('../src/server/facilitator/settler');
 const vault = require('../src/server/vault/storage');
 const app = require('../src/server/app');
+const { serviceCreationMessage } = require('../src/server/services/routes');
+const { isPrivateAddress } = require('../src/server/services/endpoint-security');
 const payer = ethers.Wallet.createRandom();
 const creator = ethers.Wallet.createRandom();
 let server;
@@ -238,6 +241,90 @@ test('paywall: multipart upload round trips binary bytes', async () => {
   const proof = { scheme: 'sandbox', payer: payer.address, recipient: creator.address, amount: '1', token: 'ETH', chainId: 4663, nonce: crypto.randomUUID() };
   const download = await fetch(base + '/api/paywalls/' + paywall.paywallId + '/download', { headers: { 'PAYMENT-SIGNATURE': Buffer.from(JSON.stringify(proof)).toString('base64') } });
   assert.equal(download.status, 200); assert.deepEqual(Buffer.from(await download.arrayBuffer()), bytes);
+});
+test('services: signed launch, private metadata, paid proxy and analytics', async () => {
+  const upstream = require('http').createServer((req, res) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => {
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify({ method: req.method, url: req.url, body: Buffer.concat(chunks).toString() }));
+    });
+  });
+  upstream.listen(0, '127.0.0.1');
+  await new Promise(resolve => upstream.once('listening', resolve));
+  try {
+    const timestamp = String(Date.now());
+    const logoBytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB', 'base64');
+    const payload = {
+      name: 'Weather AI', description: 'AI-ready weather data API', category: 'Data', videoUrl: 'https://video.example.com/weather-demo',
+      logoHash: crypto.createHash('sha256').update(logoBytes).digest('hex'),
+      logoDataUrl: `data:image/png;base64,${logoBytes.toString('base64')}`,
+      endpointUrl: `http://127.0.0.1:${upstream.address().port}/origin`,
+      allowedMethods: ['POST'], price: '0.002', currency: 'USDC',
+      creatorAddress: creator.address, payoutAddress: creator.address, creatorTimestamp: timestamp
+    };
+    payload.creatorSignature = await creator.signMessage(serviceCreationMessage(payload));
+    const created = await fetch(base + '/api/services', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    assert.equal(created.status, 201, await created.clone().text());
+    const service = (await created.json()).service;
+    assert.equal(service.network, config.networkId);
+    assert.equal(service.requests, 0);
+    assert.equal(service.videoUrl, payload.videoUrl);
+    assert.match(service.logoUrl, /\/api\/services\/weather-ai\/logo$/);
+    const logoResponse = await fetch(service.logoUrl);
+    assert.equal(logoResponse.status, 200);
+    assert.deepEqual(Buffer.from(await logoResponse.arrayBuffer()), logoBytes);
+    assert.ok(!JSON.stringify(service).includes(payload.endpointUrl));
+
+    const unpaid = await fetch(`${base}/x402/${service.slug}/forecast?city=Delhi`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ days: 3 })
+    });
+    assert.equal(unpaid.status, 402);
+    const challenge = JSON.parse(Buffer.from(unpaid.headers.get('payment-required'), 'base64'));
+    assert.equal(challenge.price, '0.002');
+    assert.equal(challenge.network, config.networkId);
+
+    const proof = {
+      scheme: 'sandbox', payer: payer.address, recipient: creator.address,
+      amount: '0.002', token: 'USDC', chainId: config.chainId, nonce: crypto.randomUUID()
+    };
+    const paid = await fetch(`${base}/x402/${service.slug}/forecast?city=Delhi`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'payment-signature': Buffer.from(JSON.stringify(proof)).toString('base64') },
+      body: JSON.stringify({ days: 3 })
+    });
+    assert.equal(paid.status, 200, await paid.clone().text());
+    const response = await paid.json();
+    assert.equal(response.method, 'POST');
+    assert.equal(response.url, '/origin/forecast?city=Delhi');
+    assert.deepEqual(JSON.parse(response.body), { days: 3 });
+
+    const replay = await fetch(`${base}/x402/${service.slug}/forecast?city=Delhi`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'payment-signature': Buffer.from(JSON.stringify(proof)).toString('base64') },
+      body: JSON.stringify({ days: 7 })
+    });
+    assert.equal(replay.status, 402);
+
+    const detail = await fetch(base + '/api/services/' + service.slug).then(result => result.json());
+    assert.equal(detail.service.requests, 1);
+    assert.equal(detail.service.revenue, '0.002');
+    assert.equal(detail.service.successfulResponses, 1);
+    assert.ok(!JSON.stringify(detail).includes(payload.endpointUrl));
+    const creatorList = await fetch(base + '/api/services/creator/' + creator.address).then(result => result.json());
+    assert.equal(creatorList.services.some(item => item.serviceId === service.serviceId), true);
+    assert.ok(!JSON.stringify(creatorList).includes('creatorSignature'));
+  } finally {
+    upstream.closeAllConnections();
+    await new Promise(resolve => upstream.close(resolve));
+  }
+});
+test('services: endpoint security identifies private and reserved addresses', () => {
+  for (const address of ['127.0.0.1', '10.0.0.1', '169.254.169.254', '192.168.1.1', '::1', 'fd00::1']) assert.equal(isPrivateAddress(address), true);
+  for (const address of ['1.1.1.1', '8.8.8.8', '2606:4700:4700::1111']) assert.equal(isPrivateAddress(address), false);
 });
 test('production: unknown APIs, malformed JSON and legacy wallet APIs return JSON errors', async () => {
   assert.equal((await fetch(base + '/api/nonexistent')).status, 404);

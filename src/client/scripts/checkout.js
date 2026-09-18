@@ -8,8 +8,11 @@ function initPaywallViewRouting() {
     if (paywallId) {
       loadPaywallView(paywallId);
     }
+  } else if (path.includes('/services/')) {
+    const serviceSlug = path.split('/services/')[1].split('/')[0].split('?')[0].trim();
+    if (serviceSlug) loadServiceDetail(serviceSlug);
   } else {
-    switchView('create');
+    switchView('service-launch');
   }
 
   // Intercept internal /p/ links for seamless SPA navigation
@@ -29,8 +32,11 @@ function initPaywallViewRouting() {
     if (p.includes('/p/')) {
       const pid = p.split('/p/')[1].split('/')[0].split('?')[0].trim();
       loadPaywallView(pid);
+    } else if (p.includes('/services/')) {
+      const serviceSlug = p.split('/services/')[1].split('/')[0].split('?')[0].trim();
+      loadServiceDetail(serviceSlug);
     } else {
-      switchView('create');
+      switchView('service-launch');
     }
   });
 

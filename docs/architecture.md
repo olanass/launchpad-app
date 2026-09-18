@@ -19,7 +19,10 @@ The application is a single Node.js service with a static browser client. The or
 - `facilitator`: amount parsing, verification, settlement, receipts, and analytics.
 - `middleware`: reusable HTTP 402 request handling.
 - `paywall`: listing creation, metadata lookup, and protected downloads.
+- `services`: signed API listings, public catalog data, safe upstream proxying, and per-service analytics.
 - `vault`: encrypted local storage and optional IPFS pinning.
+
+Hosted API services use the active Robinhood network selected for the process. The public gateway is mounted at `/x402/:slug`; it verifies and settles payment before forwarding a request. Endpoint resolution rejects private and reserved addresses, redirects are revalidated, and request/response sizes are bounded.
 
 `src/server/config/paths.js` owns project, client, and data paths. Feature modules should not calculate paths relative to their own source directories.
 
