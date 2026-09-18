@@ -1,10 +1,10 @@
-const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
 const agentRouter = require('./agent/routes');
 const privyAuthRouter = require('./auth/routes');
 const { CLIENT_DIR } = require('./config/paths');
+const CLIENT_INDEX_PATH = require.resolve('../client/index.html');
 const { ROBINHOOD_CHAIN_CONFIG } = require('./config/chain');
 const demoApiRouter = require('./demo/routes');
 const facilitatorRouter = require('./facilitator/facilitator');
@@ -51,7 +51,7 @@ app.use((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     return res.status(404).json({ error: 'Endpoint not found' });
   }
-  return res.sendFile(path.join(CLIENT_DIR, 'index.html'));
+  return res.sendFile(CLIENT_INDEX_PATH);
 });
 
 module.exports = app;

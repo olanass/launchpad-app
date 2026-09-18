@@ -1,3 +1,4 @@
+const express = require('express');
 const os = require('os');
 const path = require('path');
 const { loadEnv } = require('./src/server/config/load-env');
@@ -16,4 +17,7 @@ if (process.env.VERCEL) {
   }
 }
 
-module.exports = require('./src/server/app');
+const app = express();
+app.use(require('./src/server/app'));
+
+module.exports = app;
