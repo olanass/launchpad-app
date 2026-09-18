@@ -5,17 +5,19 @@
 function initFileUpload() {
   const dropZone = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
-  const filePreview = document.getElementById('filePreview');
+  const filePreview = document.getElementById('uploadedFileCard');
   const btnRemove = document.getElementById('btnRemoveFile');
 
-  dropZone.addEventListener('click', (e) => {
-    if (e.target !== btnRemove && !btnRemove.contains(e.target)) {
+  if (!dropZone || !fileInput || !filePreview || !btnRemove) return;
+
+  dropZone.addEventListener('click', (event) => {
+    if (event.target !== btnRemove && !btnRemove.contains(event.target)) {
       fileInput.click();
     }
   });
 
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
+  dropZone.addEventListener('dragover', (event) => {
+    event.preventDefault();
     dropZone.classList.add('drag-active');
   });
 
@@ -23,35 +25,35 @@ function initFileUpload() {
     dropZone.classList.remove('drag-active');
   });
 
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
+  dropZone.addEventListener('drop', (event) => {
+    event.preventDefault();
     dropZone.classList.remove('drag-active');
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelected(e.dataTransfer.files[0]);
+    if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+      handleFileSelected(event.dataTransfer.files[0]);
     }
   });
 
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileSelected(e.target.files[0]);
+  fileInput.addEventListener('change', (event) => {
+    if (event.target.files && event.target.files[0]) {
+      handleFileSelected(event.target.files[0]);
     }
   });
 
-  btnRemove.addEventListener('click', (e) => {
-    e.stopPropagation();
+  btnRemove.addEventListener('click', (event) => {
+    event.stopPropagation();
     state.selectedFile = null;
     fileInput.value = '';
     document.getElementById('uploadPrompt').style.display = 'block';
     filePreview.style.display = 'none';
-    const swarmPill = document.getElementById('p2pSwarmPill');
-    if (swarmPill) swarmPill.style.display = 'none';
   });
 
   const toggleTextBtn = document.getElementById('btnToggleTextInput');
   const textWrapper = document.getElementById('textInputWrapper');
   if (toggleTextBtn && textWrapper) {
     toggleTextBtn.addEventListener('click', () => {
-      textWrapper.style.display = textWrapper.style.display === 'none' ? 'block' : 'none';
+      const opening = textWrapper.style.display === 'none';
+      textWrapper.style.display = opening ? 'block' : 'none';
+      if (opening) document.getElementById('textContentInput')?.focus();
     });
   }
 }
@@ -59,18 +61,20 @@ function initFileUpload() {
 function handleFileSelected(file) {
   state.selectedFile = file;
   document.getElementById('uploadPrompt').style.display = 'none';
-  const filePreview = document.getElementById('filePreview');
+
+  const filePreview = document.getElementById('uploadedFileCard');
   filePreview.style.display = 'flex';
 
-  document.getElementById('previewFilename').textContent = file.name;
-  document.getElementById('previewFilesize').textContent = formatBytes(file.size);
+  document.getElementById('fileNameDisplay').textContent = file.name;
+  document.getElementById('fileMetaDisplay').textContent = `${formatBytes(file.size)} · Ready to encrypt`;
+
+  const extension = file.name.includes('.') ? file.name.split('.').pop().slice(0, 4).toUpperCase() : 'FILE';
+  document.getElementById('fileTypeIcon').textContent = extension;
 
   const titleInput = document.getElementById('assetTitle');
   if (!titleInput.value.trim()) {
-    titleInput.value = file.name.replace(/\.[^/.]+$/, "");
+    titleInput.value = file.name.replace(/\.[^/.]+$/, '');
   }
-
-
 }
 
 function formatBytes(bytes) {
@@ -98,7 +102,6 @@ function initPaywallCreation() {
     setTimeout(() => { btnCopy.textContent = 'Copy'; }, 2000);
   });
 
-  // Collapsible Advance Options Section Toggle
   const btnToggleAdvance = document.getElementById('btnToggleAdvance');
   const advanceDropdownBody = document.getElementById('advanceDropdownBody');
   if (btnToggleAdvance && advanceDropdownBody) {
@@ -109,25 +112,11 @@ function initPaywallCreation() {
     });
   }
 
-  // Dynamic currency prefix and step
   const currSelect = document.getElementById('assetCurrency');
   const inputPrefix = document.querySelector('.input-prefix');
-  const priceInput = document.getElementById('assetPrice');
-  if (currSelect && inputPrefix) {
+  if (currSelect) {
     currSelect.addEventListener('change', () => {
-      if (currSelect.value === 'ETH') {
-        inputPrefix.textContent = 'Ξ';
-        if (priceInput && (priceInput.value === '2.50' || priceInput.value === '0.1')) {
-          priceInput.value = '0.0005';
-          priceInput.step = '0.0001';
-        }
-      } else {
-        inputPrefix.textContent = '$';
-        if (priceInput && priceInput.value === '0.0005') {
-          priceInput.value = '2.50';
-          priceInput.step = '0.10';
-        }
-      }
+      if (inputPrefix) inputPrefix.textContent = currSelect.value === 'ETH' ? 'Ξ' : '$';
     });
   }
 }

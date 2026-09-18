@@ -1,5 +1,6 @@
 @import url('./foundation.css');
 @import url('./forms.css');
+@import url('./creator-studio.css');
 @import url('./checkout.css');
 @import url('./dashboard.css');
 @import url('./auth-dialog.css');
@@ -7,3 +8,4 @@
 @import url('./privy.css');
 @import url('./notifications.css');
 @import url('./responsive.css');
+@import url('./cosmos-background.css');
