@@ -83,8 +83,12 @@ app.post('/agent-runner/execute', async (req, res) => {
 });
 
 // Serve Static Frontend Assets
-app.use(express.static(path.join(__dirname, 'packages', 'public')));
-app.use('/p', express.static(path.join(__dirname, 'packages', 'public')));
+const staticOptions = {
+  etag: false,
+  setHeaders: res => res.setHeader('Cache-Control', 'no-store')
+};
+app.use(express.static(path.join(__dirname, 'packages', 'public'), staticOptions));
+app.use('/p', express.static(path.join(__dirname, 'packages', 'public'), staticOptions));
 
 // SPA Route: Support `/p/:id` (Paywall view) and all other pages
 app.use(['/api', '/facilitator', '/agent-runner'], (req, res) => res.status(404).json({ error: 'Endpoint not found' }));

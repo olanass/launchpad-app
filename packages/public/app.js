@@ -933,6 +933,19 @@ async function handleUnlockPayment() {
 
     if (!await ensureRobinhoodNetwork(mm)) throw new Error('Switch to Robinhood Chain before paying');
 
+    const storageKey = 'x402_pending:' + paywall.paywallId + ':' + fromAddress.toLowerCase();
+    let txHash = sessionStorage.getItem(storageKey);
+
+    // Never initiate a new transfer unless the server can independently
+    // verify it. Existing confirmed transfers may still be safely recovered.
+    if (!txHash) {
+      const readinessResponse = await fetch('/api/paywalls/chain-readiness', { cache: 'no-store' });
+      const readiness = await readinessResponse.json().catch(() => ({}));
+      if (!readinessResponse.ok || !readiness.ready) {
+        throw new Error('Payment verification is temporarily unavailable; no payment was sent. Start the server with working Robinhood RPC access and retry.');
+      }
+    }
+
     // Check delivery and the current requirement before sending funds.
     const preflight = await fetch('/api/paywalls/' + paywall.paywallId + '/download');
     if (preflight.status !== 402) throw new Error('Content is unavailable; no payment was sent');
@@ -955,56 +968,43 @@ async function handleUnlockPayment() {
       tx.value = '0x0';
       tx.data = '0xa9059cbb' + recipient.slice(2).toLowerCase().padStart(64, '0') + units.toString(16).padStart(64, '0');
     }
-    const storageKey = 'x402_pending:' + paywall.paywallId + ':' + fromAddress.toLowerCase();
-    let txHash = sessionStorage.getItem(storageKey);
     if (!txHash) {
       txHash = await mm.request({ method: 'eth_sendTransaction', params: [tx] });
       sessionStorage.setItem(storageKey, txHash);
     }
 
-    // Step 2: L2 Finality
+    const pendingExplorerLink = document.getElementById('linkExplorerTx');
+    if (pendingExplorerLink) {
+      pendingExplorerLink.href = `${ROBINHOOD_EXPLORER_URL}/tx/${txHash}`;
+      pendingExplorerLink.textContent = 'View transaction on Blockscout ↗';
+      pendingExplorerLink.style.display = 'block';
+    }
+
+    // Step 2: server-side chain verification
     stepWallet.className = 'stepper-step done';
     stepL2.className = 'stepper-step active';
-    unlockText.textContent = '2/3: Waiting for transaction confirmation...';
-
-    try { await waitForPayment(mm, txHash); } catch (err) { if (err.code === 'REVERTED') sessionStorage.removeItem(storageKey); throw err; }
-    const resource = '/api/paywalls/' + paywall.paywallId + '/download';
-    const message = 'x402 download\nChain: 4663\nTransaction: ' + txHash.toLowerCase() + '\nResource: ' + resource + '\nPayer: ' + fromAddress.toLowerCase();
-    const signature = await mm.request({ method: 'personal_sign', params: [message, fromAddress] });
-
-    // Step 3: Decrypt
-    stepL2.className = 'stepper-step done';
-    stepDecrypt.className = 'stepper-step active';
-    unlockText.textContent = '3/3: Settled! Decrypting asset from Vault...';
+    unlockText.textContent = '2/3: Verifying payment on Robinhood Chain...';
 
     const paymentVoucher = {
       scheme: 'onchain-tx',
       txHash,
-      payer: fromAddress,
-      signature
+      payer: fromAddress
     };
 
     const voucherHeader = btoa(JSON.stringify(paymentVoucher));
 
     // Request download with PAYMENT-SIGNATURE
     const downloadUrl = `/api/paywalls/${paywall.paywallId}/download`;
-    const res = await fetch(downloadUrl, {
-      headers: {
-        'PAYMENT-SIGNATURE': voucherHeader
-      }
-    });
-
-    if (res.status === 402) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.details || errJson.message || 'Payment rejected: Transaction not verified on Robinhood Chain');
-    }
+    const res = await fetchVerifiedDownload(downloadUrl, voucherHeader, status => { unlockText.textContent = status; });
 
     if (!res.ok) {
       throw new Error(`Download failed with status ${res.status}`);
     }
 
-    // Complete download
-    if (stepDecrypt) stepDecrypt.className = 'stepper-step done';
+    // Step 3: the server verified the payment; decrypt and download.
+    stepL2.className = 'stepper-step done';
+    stepDecrypt.className = 'stepper-step active';
+    unlockText.textContent = '3/3: Payment verified! Preparing download...';
     const blob = await res.blob();
     if (state.downloadBlobUrl) URL.revokeObjectURL(state.downloadBlobUrl);
     const blobUrl = window.URL.createObjectURL(blob);
@@ -1032,6 +1032,7 @@ async function handleUnlockPayment() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+    if (stepDecrypt) stepDecrypt.className = 'stepper-step done';
 
   } catch (err) {
     console.error('[x402] Payment error:', err);
@@ -1045,6 +1046,27 @@ async function handleUnlockPayment() {
     unlockText.textContent = 'Pay & Unlock Content';
     if (stepper) stepper.style.display = 'none';
   } finally { state.paymentInProgress = false; }
+}
+
+async function fetchVerifiedDownload(url, voucherHeader, onProgress = () => {}) {
+  const startedAt = Date.now();
+  const deadline = startedAt + 90000;
+  while (Date.now() < deadline) {
+    const response = await fetch(url, { headers: { 'PAYMENT-SIGNATURE': voucherHeader } });
+    if (response.status !== 402) return response;
+
+    const body = await response.json().catch(() => ({}));
+    const details = body.details || body.message || 'Payment rejected: Transaction not verified on Robinhood Chain';
+    if (/CURVE\.n|invalid signature/i.test(details)) {
+      throw new Error('The server is still running the previous payment code. Restart RUN-X402.cmd once, then retry; this payment will be reused.');
+    }
+    if (!/pending|not found|temporarily unavailable|RPC request failed/i.test(details)) throw new Error(details);
+
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    onProgress(`2/3: Verifying payment on Robinhood Chain (${elapsed}s)...`);
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+  throw new Error('Robinhood Chain has not indexed the transaction yet. Retry to reuse the same payment.');
 }
 
 // -------------------------------------------------------------
@@ -1183,21 +1205,6 @@ function decimalUnits(value, decimals) {
   const units = BigInt(whole + fraction.padEnd(decimals, '0'));
   if (units <= 0n || units >= 2n ** 256n) throw new Error('Invalid price');
   return units;
-}
-async function waitForPayment(provider, hash) {
-  const deadline = Date.now() + 120000;
-  while (Date.now() < deadline) {
-    const receipt = await provider.request({ method: 'eth_getTransactionReceipt', params: [hash] });
-    if (receipt) {
-      if (BigInt(receipt.status) !== 1n) throw Object.assign(new Error('Transaction reverted; no content unlocked'), { code: 'REVERTED' });
-      // A successful mined receipt is sufficient on Robinhood Chain for checkout.
-      // Do not wait for a second L2 block: on low-activity periods that can leave
-      // an already-paid checkout stuck at step 2/3.
-      if (receipt.blockNumber != null) return receipt;
-    }
-    await new Promise(resolve => setTimeout(resolve, 1500));
-  }
-  throw new Error('Transaction is still pending. Retry to check the same payment without sending again.');
 }
 async function loadAvailableCurrencies() {
   try {

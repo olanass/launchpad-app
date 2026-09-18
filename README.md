@@ -17,13 +17,13 @@ The generated Privy bundle is built from `privy-bridge-src.jsx` using the pinned
 
 ## Payment behavior
 
-The buyer sends the exact listed amount in the listed currency to the creator. ETH transfers are checked against the actual transaction recipient and value. ERC-20 transfers are checked against the configured contract's Transfer events, sender, recipient, and amount. The server checks the network, transaction success, and at least two confirmations. Two confirmations are a policy, not a finality guarantee.
+The buyer sends the exact listed amount in the listed currency to the creator. ETH transfers are checked against the actual transaction recipient and value. ERC-20 transfers are checked against the configured contract's Transfer events, sender, recipient, and amount. The server checks the network and requires a successful mined transaction.
 
-The buyer signs a claim binding the transaction, wallet, and resource. A bare public transaction hash cannot unlock content. Redemptions persist under the data directory. A payment can be reused for the same payer, resource, token, amount, and recipient to recover an interrupted download; it cannot buy another requirement.
+The confirmed transaction hash and payer address form the payment proof. Redemptions persist under the data directory. A payment can be reused for the same payer, resource, token, amount, and recipient to recover an interrupted download; it cannot buy another requirement.
 
 Payments transfer directly to the creator. This implementation does not deduct a facilitator fee or submit transactions on behalf of a buyer. Unsupported or unconfigured currencies fail closed.
 
-The browser retains pending transaction hashes within the tab so a timeout or signature cancellation does not cause another transfer. Reverted transactions are cleared so the user can retry. Wallet switching and transaction replacement still require manual attention; no replacement transaction is sent automatically.
+The browser retains pending transaction hashes within the tab so a timeout does not cause another transfer. The server polls its configured Robinhood RPC and Blockscout for confirmation. Wallet switching and transaction replacement still require manual attention; no replacement transaction is sent automatically.
 
 ## API
 
@@ -61,13 +61,10 @@ Field order matters. The timestamp must be within five minutes. Cancellation, co
 
 ### Download proof
 
-After receiving the challenge, sign the exact claim below. Use the challenge's resource field, which excludes query parameters:
+After receiving the challenge and submitting the transfer, send the transaction hash and payer address:
 
 ```js
-const message = 'x402 download\nChain: 4663\nTransaction: ' +
-  txHash.toLowerCase() + '\nResource: ' + challenge.resource +
-  '\nPayer: ' + payer.toLowerCase();
-const proof = { scheme: 'onchain-tx', txHash, payer, signature };
+const proof = { scheme: 'onchain-tx', txHash, payer };
 // Send base64(JSON.stringify(proof)) as PAYMENT-SIGNATURE.
 ```
 
@@ -91,7 +88,7 @@ Existing listings using old placeholder token addresses must be reviewed and con
 
 ## Verification limits
 
-The repair tests use mocked chain responses and browser providers. They cover validation, transfer matching, signatures, replay handling, persistence, private previews, encrypted text/binary downloads, checkout cancellation/retry behavior, delivery preflight, wallet fallback, and chain switching. The compiled bundle and local Privy login modal have been checked. Authenticated Privy login, real wallet extensions, and live payment settlement still require end-to-end validation before use with funds. See REPAIR-REPORT.md for the installation-specific checks and migration blockers.
+The repair tests use mocked chain responses and browser providers. They cover validation, transfer matching, replay handling, persistence, private previews, encrypted text/binary downloads, checkout retry behavior, delivery preflight, wallet fallback, and chain switching. The compiled bundle and local Privy login modal have been checked. Authenticated Privy login, real wallet extensions, and live payment settlement still require end-to-end validation before use with funds.
 
 Network settings retain chain ID 4663 and the mainnet RPC described in [Robinhood's network documentation](https://docs.robinhood.com/chain/add-network-to-wallet/).
 

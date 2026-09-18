@@ -7,10 +7,19 @@ const { ethers } = require('ethers');
 const { paywallService, publicPaywall } = require('./service');
 const { storeUploadedFile, storeTextAsset, pinAssetToIpfs, getDecryptedAssetBuffer } = require('../vault/storage');
 const { parseAmount } = require('../facilitator/amount');
+const { checkChainReadiness } = require('../facilitator/verifier');
 const { x402 } = require('../middleware/x402');
 const router = express.Router();
 const upload = multer({ dest: path.join(os.tmpdir(), 'x402-uploads'), limits: { fileSize: 25 * 1024 * 1024, files: 1, fields: 10, fieldSize: 1024 * 1024 } });
 router.get('/gas-estimate', async (req, res) => res.json({ success: true, estimate: await paywallService.getRealGasEstimate() }));
+router.get('/chain-readiness', async (req, res) => {
+  try {
+    const status = await checkChainReadiness();
+    res.json({ ready: true, ...status });
+  } catch (_) {
+    res.status(503).json({ ready: false, error: 'Payment verification is temporarily unavailable' });
+  }
+});
 router.post('/create', upload.single('file'), async (req, res, next) => {
   let asset;
   let saved = false;

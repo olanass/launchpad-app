@@ -381,7 +381,7 @@
               <div class="stepper-arrow">→</div>
               <div class="stepper-step" id="stepL2">
                 <span class="step-num">2</span>
-                <span>Orbit L2 (<200ms)</span>
+                <span>Transaction Confirmed</span>
               </div>
               <div class="stepper-arrow">→</div>
               <div class="stepper-step" id="stepDecrypt">
@@ -480,7 +480,7 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
         <h2>Create a paywall</h2>
         <p>Connect your wallet, upload a file or enter text, and choose a price in a configured currency. Sign the listing in your wallet to publish. Cancelling the signature cancels publication.</p>
         <h2>Pay and download</h2>
-        <p>The buyer sends the listed amount in the listed currency to the creator. After two transaction confirmations, the buyer signs a download claim. The server verifies the transfer and releases the file.</p>
+        <p>The buyer sends the listed amount in the listed currency to the creator. As soon as the transaction is confirmed, the server verifies the transfer and releases the file.</p>
         <p>If a request times out, retry in the same tab. The existing transaction is checked again. Confirmed payments can be retried for the same file without another charge.</p>
         <h2>Storage and privacy</h2>
         <p>Files are encrypted in the server vault. Public previews show file metadata only. Files are not shared through browser P2P. Retention depends on the operator's storage and backups.</p>
@@ -540,7 +540,7 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
   </footer>
 
   <!-- App Logic (loads first for immediate MetaMask access) -->
-  <script src="/app.js"></script>
+  <script src="/app.js?v=20260918-server-verification"></script>
   <!-- Privy Auth (deferred — only needed for email login, not MetaMask payments) -->
   <script src="/privy-bridge.bundle.js" defer></script>
 </body>
