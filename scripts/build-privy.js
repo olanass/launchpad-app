@@ -1,10 +1,12 @@
 const esbuild = require('esbuild-wasm');
+const fs = require('fs');
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
 const clientDir = path.join(projectRoot, 'src', 'client');
+const publicDir = path.join(projectRoot, 'public');
 
-async function bundlePrivy() {
+async function buildClient() {
   console.log('Bundling the @privy-io/react-auth connector...');
   try {
     await esbuild.build({
@@ -24,11 +26,16 @@ async function bundlePrivy() {
       minify: true,
       sourcemap: false
     });
+
+    fs.rmSync(publicDir, { recursive: true, force: true });
+    fs.cpSync(clientDir, publicDir, { recursive: true });
+
     console.log('Privy bridge created at src/client/generated/privy-bridge.bundle.js');
+    console.log('Vercel static assets copied to public/.');
   } catch (err) {
-    console.error('Privy bridge build failed:', err);
-    process.exit(1);
+    console.error('Client build failed:', err);
+    process.exitCode = 1;
   }
 }
 
-bundlePrivy();
+buildClient();

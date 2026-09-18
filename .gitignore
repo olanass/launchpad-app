@@ -20,3 +20,4 @@ src/client/generated/
 .DS_Store
 Thumbs.db
 .vscode/
+public/
