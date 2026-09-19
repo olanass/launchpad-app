@@ -1,3 +1,6 @@
+// Vercel's Express detector requires the recognized entrypoint to import
+// Express directly, even though the configured app lives in src/server/app.
+require('express');
 const next = require('next');
 const { loadEnv } = require('./src/server/config/load-env');
 
