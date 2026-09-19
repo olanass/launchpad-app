@@ -205,7 +205,22 @@
             <section class="launch-config-section launch-pricing-section">
             <div class="builder-heading"><div><span>Access & pricing</span><small>Your terms. Every request.</small></div><b>02</b></div>
             <div class="service-form-grid">
-              <div class="form-group service-span-2"><label>Allowed methods</label><div class="method-picker"><label><input type="checkbox" name="serviceMethod" value="GET"><span>GET</span></label><label><input type="checkbox" name="serviceMethod" value="POST" checked><span>POST</span></label><label><input type="checkbox" name="serviceMethod" value="PUT"><span>PUT</span></label><label><input type="checkbox" name="serviceMethod" value="PATCH"><span>PATCH</span></label><label><input type="checkbox" name="serviceMethod" value="DELETE"><span>DELETE</span></label></div></div>
+              <fieldset class="form-group service-span-2 api-actions-fieldset">
+                <legend>What does your API do?</legend>
+                <p id="apiActionsHelp">Choose the actions your endpoint already supports. You can select more than one.</p>
+                <div class="method-picker api-action-picker" aria-describedby="apiActionsHelp">
+                  <label><input type="checkbox" name="serviceMethod" value="GET"><span><strong>Read data <code>GET</code></strong><small>Fetch information, like weather or prices.</small></span></label>
+                  <label><input type="checkbox" name="serviceMethod" value="POST" checked><span><strong>Generate or process <code>POST</code></strong><small>Send input to create a result, like an image.</small></span></label>
+                </div>
+                <details class="api-actions-advanced">
+                  <summary>More actions: replace, update or delete</summary>
+                  <div class="method-picker api-action-picker">
+                    <label><input type="checkbox" name="serviceMethod" value="PUT"><span><strong>Replace data <code>PUT</code></strong><small>Replace an existing resource in full.</small></span></label>
+                    <label><input type="checkbox" name="serviceMethod" value="PATCH"><span><strong>Update details <code>PATCH</code></strong><small>Change specific fields on a resource.</small></span></label>
+                    <label><input type="checkbox" name="serviceMethod" value="DELETE"><span><strong>Delete data <code>DELETE</code></strong><small>Remove an existing resource.</small></span></label>
+                  </div>
+                </details>
+              </fieldset>
               <div class="form-group"><label for="servicePrice">Price per request</label><div class="price-input-wrap"><span>$</span><input id="servicePrice" class="form-control" inputmode="decimal" value="0.002" placeholder="0.002"></div></div>
               <div class="form-group"><label for="serviceCurrency">Payment token</label><select id="serviceCurrency" class="form-control"><option value="USDG">USDG</option></select></div>
               <div class="service-network-card service-span-2"><div class="robinhood-orb">R</div><div><span>Payment network</span><strong id="serviceNetworkName">Robinhood Chain</strong><small id="serviceNetworkMeta">Chain ID 4663 · Direct to your wallet</small></div><b><i></i> Active</b></div>

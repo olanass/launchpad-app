@@ -31,6 +31,19 @@
 #view-service-launch .method-picker span { padding: 11px 12px; border-color: var(--ui-line); border-radius: 7px; background: var(--ui-surface); color: var(--ui-muted); font-size: 11px; }
 #view-service-launch .method-picker input:checked + span { border-color: var(--ui-green); background: var(--ui-green-soft); color: var(--ui-green); box-shadow: none; }
 #view-service-launch .method-picker input:focus-visible + span { outline: 2px solid var(--ui-green); outline-offset: 3px; }
+.api-actions-fieldset { min-width: 0; padding: 0; border: 0; }
+.api-actions-fieldset legend { padding: 0; color: var(--ui-ink); font-size: 12px; font-weight: 600; }
+.api-actions-fieldset > p { margin: 8px 0 14px; color: var(--ui-muted); font-size: 11px; line-height: 1.6; }
+#view-service-launch .api-action-picker { display: grid; grid-template-columns: minmax(0, 1fr); gap: 9px; }
+#view-service-launch .api-action-picker label { position: relative; }
+#view-service-launch .api-action-picker label > span { display: block; float: none; padding: 14px 14px 14px 38px; font-family: var(--font-sans); text-transform: none; letter-spacing: normal; }
+#view-service-launch .api-action-picker input { width: 15px; height: 15px; top: 17px; left: 13px; margin: 0; opacity: 1; pointer-events: auto; accent-color: var(--ui-green); cursor: pointer; }
+.api-action-picker strong { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--ui-ink); font-size: 12px; font-weight: 600; }
+.api-action-picker code { color: var(--ui-subtle); font: 10px var(--font-mono); }
+#view-service-launch .api-action-picker small { display: block; margin-top: 5px; color: var(--ui-muted); font-size: 11px; line-height: 1.5; }
+.api-actions-advanced { margin-top: 14px; }
+.api-actions-advanced summary { padding: 5px 0; color: var(--ui-muted); font-size: 11px; line-height: 1.6; cursor: pointer; }
+.api-actions-advanced[open] summary { margin-bottom: 10px; }
 #view-service-launch .service-network-card { padding: 18px 14px; border-radius: 10px; background: var(--ui-surface); }
 #view-service-launch .service-network-card strong { color: var(--ui-ink); font-size: 13px; }
 #view-service-launch .service-network-card span, #view-service-launch .service-network-card small { color: var(--ui-muted); font-size: 10px; line-height: 1.6; }
