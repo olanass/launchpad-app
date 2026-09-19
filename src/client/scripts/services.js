@@ -84,19 +84,7 @@ async function loadServiceNetwork() {
 }
 
 function updateServicePreview() {
-  const name = document.getElementById('serviceName')?.value.trim() || 'WeatherAI (Example)';
-  const description = document.getElementById('serviceDescription')?.value.trim() || 'AI-ready weather data for apps and autonomous agents.';
-  const category = document.getElementById('serviceCategory')?.value || 'AI & Models';
-  const price = document.getElementById('servicePrice')?.value.trim() || '0.002';
-  const currency = document.getElementById('serviceCurrency')?.value || 'USDG';
-  document.getElementById('previewServiceName').textContent = name;
-  document.getElementById('previewServiceDescription').textContent = description;
-  document.getElementById('previewServiceCategory').textContent = category;
-  document.getElementById('previewServicePrice').textContent = `$${price}`;
-  document.getElementById('previewServiceToken').textContent = currency;
-  const previewIcon = document.getElementById('previewServiceIcon');
-  if (serviceUiState.logoDataUrl) previewIcon.innerHTML = `<img src="${serviceUiState.logoDataUrl}" alt="">`;
-  else previewIcon.textContent = serviceInitial(name);
+  const name = document.getElementById('serviceName')?.value.trim() || 'API';
   const uploadPreview = document.getElementById('serviceLogoPreview');
   if (uploadPreview && !serviceUiState.logoDataUrl) uploadPreview.textContent = serviceInitial(name);
 }

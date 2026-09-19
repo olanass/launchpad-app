@@ -1,0 +1,52 @@
+/* Launch workspace: readable fields, restrained surfaces, and clear hierarchy. */
+#view-service-launch .launch-builder { display: block; padding: 0 0 64px; border-bottom: 1px solid var(--ui-line); scroll-margin-top: 100px; }
+.launch-workspace-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
+.workspace-eyebrow { display: block; margin-bottom: 12px; color: var(--ui-green); font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+.launch-workspace-heading h2 { margin: 0; color: var(--ui-ink); font-size: clamp(30px, 4vw, 46px); line-height: 1.15; font-weight: 600; letter-spacing: -.045em; }
+.launch-workspace-heading p { margin: 12px 0 0; color: var(--ui-muted); font-size: 15px; line-height: 1.6; }
+.workspace-docs-link { display: inline-flex; align-items: center; gap: 20px; padding: 12px 16px; border: 1px solid var(--ui-line); border-radius: 9px; background: var(--ui-surface); color: var(--ui-ink); text-decoration: none; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.workspace-docs-link:hover { border-color: var(--ui-green); }
+#view-service-launch .launch-form-panel { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); padding: 0; overflow: hidden; border-radius: 18px; box-shadow: 0 8px 32px -24px rgb(0 0 0 / .2); }
+.launch-config-section { min-width: 0; padding: 32px; }
+.launch-pricing-section { border-left: 1px solid var(--ui-line); background: color-mix(in srgb, var(--ui-surface-soft) 45%, var(--ui-surface)); }
+#view-service-launch .builder-heading { align-items: flex-start; margin-bottom: 28px; font-size: 17px; font-weight: 600; }
+.builder-heading > div { display: grid; gap: 7px; }
+.builder-heading small { color: var(--ui-muted); font-size: 12px; font-weight: 400; line-height: 1.5; }
+#view-service-launch .builder-heading b { width: 30px; height: 30px; border-color: var(--ui-line); border-radius: 8px; background: var(--ui-surface); color: var(--ui-subtle); font-size: 11px; }
+#view-service-launch .service-form-grid { gap: 24px 18px; }
+#view-service-launch .service-form-grid label { display: block; margin-bottom: 9px; font-size: 12px; font-weight: 600; }
+#view-service-launch .service-form-grid label > span { color: var(--ui-subtle); font-size: 9px; font-weight: 500; letter-spacing: .025em; }
+#view-service-launch .service-form-grid .form-control { min-height: 48px; border: 1px solid var(--ui-line); border-radius: 8px; background: var(--ui-surface); color: var(--ui-ink); font-size: 13px; box-shadow: 0 1px 2px rgb(0 0 0 / .02); }
+#view-service-launch .service-form-grid .form-control:focus { border-color: var(--ui-green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-green) 12%, transparent); }
+#view-service-launch .service-form-grid .form-group > small { margin-top: 8px; color: var(--ui-muted); font-size: 11px; line-height: 1.6; }
+#view-service-launch .service-logo-button, #view-service-launch .service-spec-uploader { padding: 14px; border-color: var(--ui-line-strong); border-radius: 10px; background: var(--ui-surface); color: var(--ui-ink); }
+#view-service-launch .service-logo-button:hover, #view-service-launch .service-spec-uploader:focus-within { border-color: var(--ui-green); }
+#view-service-launch .service-logo-button strong, #view-service-launch .service-spec-uploader strong { font-size: 12px; }
+#view-service-launch .service-logo-button small, #view-service-launch .service-spec-uploader small { color: var(--ui-muted); font-size: 10px; line-height: 1.5; }
+#view-service-launch .service-logo-button > b, #view-service-launch .service-spec-uploader b { border: 1px solid var(--ui-line); background: var(--ui-surface-soft); color: var(--ui-ink); box-shadow: none; font-size: 10px; white-space: nowrap; }
+#view-service-launch .service-spec-uploader > button:first-of-type { color: var(--ui-ink); min-width: 0; }
+#view-service-launch .service-spec-uploader strong { overflow-wrap: anywhere; }
+#view-service-launch .method-picker { gap: 7px; }
+#view-service-launch .method-picker label { margin: 0; }
+#view-service-launch .method-picker span { padding: 11px 12px; border-color: var(--ui-line); border-radius: 7px; background: var(--ui-surface); color: var(--ui-muted); font-size: 11px; }
+#view-service-launch .method-picker input:checked + span { border-color: var(--ui-green); background: var(--ui-green-soft); color: var(--ui-green); box-shadow: none; }
+#view-service-launch .method-picker input:focus-visible + span { outline: 2px solid var(--ui-green); outline-offset: 3px; }
+#view-service-launch .service-network-card { padding: 18px 14px; border-radius: 10px; background: var(--ui-surface); }
+#view-service-launch .service-network-card strong { color: var(--ui-ink); font-size: 13px; }
+#view-service-launch .service-network-card span, #view-service-launch .service-network-card small { color: var(--ui-muted); font-size: 10px; line-height: 1.6; }
+#view-service-launch .service-publish-btn { margin-top: 32px; min-height: 50px; border-color: var(--ui-green); border-radius: 9px; background: var(--ui-green); color: var(--ui-green-ink); font-size: 13px; font-weight: 600; box-shadow: none; }
+#view-service-launch .service-publish-btn:hover { background: var(--ui-green-hover); transform: none; box-shadow: 0 4px 14px color-mix(in srgb, var(--ui-green) 16%, transparent); }
+#view-service-launch .service-publish-note { max-width: 300px; margin: 14px auto 0; font-size: 11px; line-height: 1.7; }
+#view-service-launch .launch-hero { padding-top: 72px; }
+@media (max-width: 900px) {
+  #view-service-launch .launch-form-panel { grid-template-columns: minmax(0, 1fr); }
+  .launch-pricing-section { border-left: 0; border-top: 1px solid var(--ui-line); }
+}
+@media (max-width: 600px) {
+  .launch-workspace-heading { align-items: flex-start; flex-direction: column; gap: 18px; margin-bottom: 24px; }
+  .launch-config-section { padding: 24px 18px; }
+  #view-service-launch .service-form-grid { grid-template-columns: minmax(0, 1fr); }
+  #view-service-launch .service-span-2 { grid-column: auto; }
+  #view-service-launch .service-spec-uploader b { display: none; }
+  #view-service-launch .launch-builder { padding-bottom: 40px; }
+}
