@@ -9,7 +9,8 @@ loadEnv();
 const dev = process.env.NEXT_DEV === 'true' || String(process.env.npm_lifecycle_event || '').startsWith('dev');
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 const port = Number(process.env.PORT || 4020);
-const nextApp = next({ dev, hostname, port });
+// Webpack supports the WASM compiler fallback when native SWC is unavailable.
+const nextApp = next({ dev, hostname, port, ...(dev ? { webpack: true } : {}) });
 const handle = nextApp.getRequestHandler();
 let server;
 let shuttingDown = false;
