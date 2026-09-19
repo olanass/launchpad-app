@@ -1,0 +1,58 @@
+---
+title: "Developer overview"
+description: "Architecture and integration entry point for the Olanas API launchpad and content-payment application."
+---
+
+The Olanas repository contains a framework-light browser client and a Node.js server for launching paid APIs, creating encrypted paywalls, and verifying onchain transfers.
+
+## Core capabilities
+
+<Columns cols={2}>
+  <Card title="Signed listings" icon="signature">
+    Creator wallets sign the exact listing content before creation.
+  </Card>
+  <Card title="Encrypted delivery" icon="lock-keyhole">
+    Content is encrypted at rest and decrypted only after payment verification.
+  </Card>
+  <Card title="Onchain verification" icon="badge-check">
+    The server validates the chain, receipt, recipient, asset, amount, and payer.
+  </Card>
+  <Card title="Replay control" icon="rotate-ccw">
+    A proof can recover the same purchase but cannot buy a different requirement.
+  </Card>
+  <Card title="Paid API gateway" icon="route">
+    Developers publish an existing public endpoint behind a protected `/x402/:slug` route.
+  </Card>
+  <Card title="Public discovery" icon="search">
+    Live services expose x402 v2-shaped discovery metadata, pricing, and supported methods.
+  </Card>
+</Columns>
+
+## Runtime
+
+- Node.js 22 or newer
+- Express 5
+- ethers 6
+- Static browser client with optional Privy integration
+- Local encrypted storage with optional ciphertext-only IPFS pinning
+- libSQL locally and Turso-backed durable launchpad storage in production
+
+## Launch an API
+
+Connect a creator wallet, provide a public HTTP or HTTPS endpoint, choose the allowed methods, and set a per-request price. The endpoint itself remains private in public responses. The creator signature binds the exact listing fields, and signed management actions can pause, resume, update, or delete the listing.
+
+The launchpad validates endpoint DNS results and rejects loopback, private, link-local, and reserved destinations. Successful paid calls update durable public analytics. Failed upstream responses do not count as revenue and allow the same payment proof to retry.
+
+## Start locally
+
+```powershell
+npm ci
+npm test
+npm run dev:networks
+```
+
+This starts the mainnet-configured application at `http://localhost:4020` and the isolated testnet application at `http://localhost:4021`.
+
+<Warning>
+  Use testnet and low-value test accounts while integrating. The test suite uses mocked providers and is not a substitute for live end-to-end validation.
+</Warning>

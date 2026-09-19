@@ -1,0 +1,49 @@
+---
+title: "Tokenomics"
+description: "Supply, allocation, vesting, and transparency framework for the Olanas token."
+---
+
+<Info>
+  Onchain supply mechanics are verified. Broader allocation, circulation, vesting, and treasury disclosures have not yet been published.
+</Info>
+
+## Supply
+
+| Metric | Value |
+| --- | --- |
+| Maximum supply | `1,000,000,000 OLANAS` |
+| Initial minted supply | `1,000,000,000 OLANAS` |
+| Initial circulating supply | Not yet published |
+| Inflation or emissions | None in the verified token contract; no additional mint function |
+| Burn mechanism | Holders can burn their own balance or use an approved allowance via `burnFrom` |
+
+The full initial supply was minted to the [Pons V2 bonding curve](https://robinhoodchain.blockscout.com/address/0x4099BA95A9219b495deaE8Ea5a0C5953bB6D517B) at deployment. Because tokens are burnable, the current total supply can fall below the initial maximum.
+
+## Allocation
+
+| Onchain fact | Amount | Status |
+| --- | ---: | --- |
+| Initial bonding-curve recipient | `1,000,000,000 OLANAS` | Verified in the constructor and initial mint event |
+| Current circulating supply | Not published | Awaiting a documented methodology |
+| Team, treasury, investor, or vesting allocations | Not published | No allocation schedule is documented here |
+
+The initial mint destination describes where supply entered circulation mechanics; it does not by itself disclose beneficial ownership, later distribution, liquidity depth, or vesting. Any future allocation breakdown should total **100%** and link to relevant wallets, vesting contracts, or public dashboards.
+
+## Vesting disclosure standard
+
+For every locked allocation, Olanas should publish:
+
+1. the number of tokens allocated;
+2. the beneficiary category;
+3. the cliff date and duration;
+4. the release frequency and end date;
+5. whether vesting can be revoked or changed; and
+6. the onchain vesting address.
+
+## Treasury reporting
+
+Treasury documentation should identify authorized signers, signature threshold, permitted uses, reporting cadence, and any policy for converting tokens or other assets.
+
+<Warning>
+  Token distribution and unlocks can materially affect liquidity and market price. Published tokenomics are informational and do not guarantee value or demand.
+</Warning>

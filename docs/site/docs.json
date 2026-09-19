@@ -1,0 +1,100 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "palm",
+  "name": "Olanas",
+  "description": "Official documentation for the Olanas ecosystem and token.",
+  "colors": {
+    "primary": "#059669",
+    "light": "#10B981",
+    "dark": "#047857"
+  },
+  "favicon": "/images/favicon.svg",
+  "logo": {
+    "light": "/images/logo-light.svg",
+    "dark": "/images/logo-dark.svg"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "codeBlock": {
+    "mode": "auto"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Olanas",
+        "icon": "sparkles",
+        "groups": [
+          {
+            "group": "Start here",
+            "icon": "rocket",
+            "pages": [
+              "index",
+              "getting-started/overview",
+              "getting-started/quickstart"
+            ]
+          },
+          {
+            "group": "Olanas token",
+            "icon": "coins",
+            "pages": [
+              "token/overview",
+              "token/tokenomics",
+              "token/utility",
+              "token/contract-and-networks"
+            ]
+          },
+          {
+            "group": "Ecosystem",
+            "icon": "globe",
+            "pages": [
+              "ecosystem/content-payments",
+              "ecosystem/roadmap",
+              "ecosystem/governance"
+            ]
+          },
+          {
+            "group": "Safety and trust",
+            "icon": "shield-check",
+            "pages": [
+              "security/staying-safe",
+              "security/audits"
+            ]
+          },
+          {
+            "group": "Resources",
+            "icon": "book-open",
+            "pages": [
+              "resources/faq",
+              "resources/glossary",
+              "legal/disclaimer"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developers",
+        "icon": "code-2",
+        "groups": [
+          {
+            "group": "Build with Olanas",
+            "icon": "terminal",
+            "pages": [
+              "developers/overview",
+              "developers/network",
+              "developers/payment-flow",
+              "developers/endpoints"
+            ]
+          },
+          {
+            "group": "Internals",
+            "icon": "blocks",
+            "pages": [
+              "architecture"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

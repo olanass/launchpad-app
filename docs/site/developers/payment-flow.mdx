@@ -1,0 +1,50 @@
+---
+title: "Payment flow"
+description: "The HTTP 402-inspired request, transfer, verification, and delivery flow."
+---
+
+## Download handshake
+
+<Steps>
+  <Step title="Request content">
+    The client requests `GET /api/paywalls/:id/download` without a payment proof.
+  </Step>
+  <Step title="Read the payment requirement">
+    The server returns HTTP `402` with the exact network, currency, amount, recipient, and resource requirement.
+  </Step>
+  <Step title="Submit the transfer">
+    The buyer wallet sends the exact native or configured ERC-20 transfer on the required chain.
+  </Step>
+  <Step title="Encode the proof">
+    The client base64-encodes a JSON proof containing the scheme, transaction hash, and payer.
+  </Step>
+  <Step title="Retry the download">
+    The client sends the proof in the `PAYMENT-SIGNATURE` header. After verification, the server returns the content and a `PAYMENT-RESPONSE` receipt.
+  </Step>
+</Steps>
+
+```js Proof shape
+const proof = {
+  scheme: 'onchain-tx',
+  txHash: '0x...',
+  payer: '0x...'
+};
+
+const header = btoa(JSON.stringify(proof));
+```
+
+## Idempotent recovery
+
+The confirmed transaction hash and payer identify the proof. A valid proof may be reused for the same resource, recipient, token, and amount to recover an interrupted delivery. It cannot settle a different payment requirement.
+
+## Paid API handshake
+
+Requests to `/x402/:slug/*` follow the same payment-proof exchange. The initial `402` response includes an x402 v2-shaped `PAYMENT-REQUIRED` envelope with the `onchain-tx` confirmed-transaction scheme.
+
+After a proof is verified, the launchpad reserves its durable receipt before forwarding the original method, path, query, content type, and body to the developer endpoint. A `2xx` or `3xx` upstream response completes the receipt and records revenue. If the upstream fails, the receipt becomes retryable and revenue remains unchanged.
+
+This is compatible discovery and challenge metadata for confirmed Robinhood Chain transactions. It is not the standard x402 `exact` settlement scheme and does not submit a transaction on the buyer's behalf.
+
+<Info>
+  Demo `exact` and `sandbox` proofs are available only when explicit demo mode is enabled outside production. They move no funds and never fabricate transaction hashes.
+</Info>

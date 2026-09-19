@@ -1,12 +1,14 @@
 const esbuild = require('esbuild-wasm');
 const fs = require('fs');
 const path = require('path');
+const { buildDocs } = require('./build-docs');
 
 const projectRoot = path.resolve(__dirname, '..');
 const clientDir = path.join(projectRoot, 'src', 'client');
 const publicDir = path.join(projectRoot, 'public');
 
 async function buildClient() {
+  await buildDocs();
   console.log('Bundling the @privy-io/react-auth connector...');
   try {
     await esbuild.build({

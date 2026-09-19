@@ -81,6 +81,12 @@ For a dedicated testnet environment file, copy `.env.testnet.example` to `.env` 
 
 See [`docs/architecture.md`](docs/architecture.md) for module boundaries and data flow.
 
+## Documentation portal
+
+The website serves the Olanas documentation at `/docs`. The reviewed Mintlify source from [`olanass/docs`](https://github.com/olanass/docs) is vendored under `docs/site`. During `npm run build`, `scripts/build-docs.js` converts its navigation and MDX components into the searchable in-app documentation bundle and copies the documentation assets.
+
+The imported snapshot is recorded in `docs/site/.source-commit`. When the source repository changes, review the new claims and links before replacing the snapshot, then run `npm run build` and the regression tests.
+
 ## Payment behavior
 
 The buyer sends the exact listed amount in the listed currency to the creator. ETH transfers are checked against the actual transaction recipient and value. ERC-20 transfers are checked against the configured contract's Transfer events, sender, recipient, and amount. The server checks the network and requires a successful mined transaction.

@@ -40,6 +40,7 @@
         <button class="nav-btn" id="tabNavExplore" data-view="marketplace">Explore</button>
         <button class="nav-btn" id="tabNavCreate" data-view="create">Sell files</button>
         <button class="nav-btn" id="tabNavMyLinks" data-view="mylinks">My projects</button>
+        <button class="nav-btn" id="tabNavDocs" data-view="docs">Docs</button>
       </nav>
 
       <div class="header-right">
@@ -633,19 +634,21 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
 
     <!-- VIEW 4: DOCUMENTATION PORTAL -->
     <section id="view-docs" class="app-view">
-      <div class="page-header"><h1>How payments work</h1></div>
-      <div class="card" style="padding:32px;line-height:1.7">
-        <h2>Create a paywall</h2>
-        <p>Connect your wallet, upload a file or enter text, and choose a price in a configured currency. Sign the listing in your wallet to publish. Cancelling the signature cancels publication.</p>
-        <h2>Pay and download</h2>
-        <p>The buyer sends the listed amount in the listed currency to the creator. As soon as the transaction is confirmed, the server verifies the transfer and releases the file.</p>
-        <p>If a request times out, retry in the same tab. The existing transaction is checked again. Confirmed payments can be retried for the same file without another charge.</p>
-        <h2>Storage and privacy</h2>
-        <p>Files are encrypted in the server vault. Public previews show file metadata only. Files are not shared through browser P2P. Retention depends on the operator's storage and backups.</p>
-        <h2>Wallets and fees</h2>
-        <p>Browser wallets are supported. Embedded login requires the operator to configure Privy. Gas varies with the network. Transfers go directly to the creator; this implementation does not collect a platform fee.</p>
-        <h2>Developer integration</h2>
-        <p>This application uses a custom HTTP 402 challenge and payment proof format. It is not a certified implementation of the standard x402 protocol. See the project README for configuration and proof examples. Signed voucher demonstrations are available only in explicit demo mode and never move funds.</p>
+      <div class="docs-app-shell">
+        <aside class="docs-sidebar">
+          <a class="docs-brand" href="/docs" data-doc-slug="index">
+            <img src="/generated/docs-assets/favicon.svg" alt="">
+            <div><strong>Olanas</strong><span>Documentation</span></div>
+          </a>
+          <label class="docs-search"><span>⌕</span><input id="docsSearch" type="search" placeholder="Search documentation" autocomplete="off"></label>
+          <nav id="docsSidebarNav" aria-label="Documentation navigation"></nav>
+          <a class="docs-source-link" id="docsSourceLink" href="https://github.com/olanass/docs" target="_blank" rel="noopener noreferrer">GitHub source <span>↗</span></a>
+        </aside>
+        <main class="docs-main" id="docsMain">
+          <article class="docs-article" id="docsArticle">
+            <div class="docs-loading">Loading documentation…</div>
+          </article>
+        </main>
       </div>
     </section>
 
@@ -707,6 +710,8 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
   <script src="/scripts/services.js?v=20260918-launchpad"></script>
   <script src="/scripts/checkout.js?v=20260918-server-verification"></script>
   <script src="/scripts/dashboard.js?v=20260918-server-verification"></script>
+  <script src="/generated/docs-content.js?v=20260919-docs"></script>
+  <script src="/scripts/docs-portal.js?v=20260919-docs"></script>
   <!-- Privy Auth (deferred — only needed for email login, not MetaMask payments) -->
   <script src="/generated/privy-bridge.bundle.js" defer></script>
   <script type="importmap">

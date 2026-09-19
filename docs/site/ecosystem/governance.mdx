@@ -1,0 +1,38 @@
+---
+title: "Governance"
+description: "Governance status and the disclosure framework for future Olanas decisions."
+---
+
+<Info>
+  **Status: no token governance process is documented as active.** Do not rely on unofficial votes or proposals.
+</Info>
+
+## Before governance launches
+
+Olanas should publish:
+
+- who can create proposals;
+- which decisions are in and out of scope;
+- proposal, voting, quorum, and approval thresholds;
+- voting-power calculation and delegation rules;
+- timelock and emergency-cancellation controls;
+- the execution process and responsible contracts;
+- conflict-of-interest and treasury policies; and
+- a clear transition path from team-led to community-led decisions.
+
+## Suggested proposal lifecycle
+
+```mermaid
+flowchart LR
+  A[Community discussion] --> B[Formal proposal]
+  B --> C[Review period]
+  C --> D[Onchain vote]
+  D --> E{Approved?}
+  E -- Yes --> F[Timelock]
+  F --> G[Execution]
+  E -- No --> H[Closed]
+```
+
+## Governance safety
+
+High-impact actions should use transparent onchain execution, a published timelock, and a multisig or equivalent safeguard. Emergency powers should be narrow, observable, and time-limited.

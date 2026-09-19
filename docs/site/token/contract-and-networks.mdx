@@ -1,0 +1,64 @@
+---
+title: "Contract and networks"
+description: "The canonical place to verify Olanas token contracts and supported networks."
+---
+
+<Warning>
+  Token names and symbols can be copied. The checksummed address below is the canonical identifier for OLANAS on Robinhood Chain.
+</Warning>
+
+## Official contracts
+
+| Network | Chain ID | Contract | Status |
+| --- | ---: | --- | --- |
+| Robinhood Chain | `4663` | [`0x9400eB66B1320050A68F25A624985a674F033902`](https://robinhoodchain.blockscout.com/token/0x9400eB66B1320050A68F25A624985a674F033902) | Source verified |
+
+## Deployment details
+
+| Property | Value |
+| --- | --- |
+| Name and symbol | `OLANAS` |
+| Standard | ERC-20 |
+| Decimals | `18` |
+| Initial supply | `1,000,000,000 OLANAS` |
+| Deployment time | September 17, 2026 at 14:21:11 UTC |
+| Deployment transaction | [`0x44c6…33fca`](https://robinhoodchain.blockscout.com/tx/0x44c6b0f86a59522c8ad1cef0aee72d6694bfcceb0e65e06b0ec458bc72c33fca) |
+| Contract implementation | `PonsV2LauncherToken` |
+| Bonding curve | [`0x4099BA95A9219b495deaE8Ea5a0C5953bB6D517B`](https://robinhoodchain.blockscout.com/address/0x4099BA95A9219b495deaE8Ea5a0C5953bB6D517B) |
+| Launch factory | [`0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e`](https://robinhoodchain.blockscout.com/address/0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e) |
+| Token deployer | [`0x50870cE4EE27E85F48317dfCf35E022C58d6f523`](https://robinhoodchain.blockscout.com/address/0x50870cE4EE27E85F48317dfCf35E022C58d6f523) |
+| Onchain logo | [`ipfs://bafk…obqzm`](https://gateway.pinata.cloud/ipfs/bafkreiefns2ong5u76ilxvw47appox64pol6mvde6rhugf6rtk6eeobqzm) |
+
+<Note>
+  The verified source describes a fixed-supply token. All tokens were minted to the bonding curve during construction. There is no further mint function; holders can voluntarily burn tokens. The stored deployer address is attribution metadata and does not confer token privileges.
+</Note>
+
+## Application networks
+
+The application supports both Robinhood Chain mainnet and its testnet. The OLANAS deployment listed above is on mainnet only.
+
+| Network | Chain ID | Native currency | Explorer |
+| --- | ---: | --- | --- |
+| Robinhood Chain | `4663` | ETH | `https://robinhoodchain.blockscout.com` |
+| Robinhood Chain Testnet | `46630` | Testnet ETH | `https://explorer.testnet.chain.robinhood.com` |
+
+## Verification checklist
+
+<Steps>
+  <Step title="Start from this page">
+    Copy the contract address only from the canonical table above.
+  </Step>
+  <Step title="Open the explorer">
+    Follow the linked block explorer and confirm the chain, token name, symbol, supply, and verified source.
+  </Step>
+  <Step title="Compare character by character">
+    Verify the first and last characters. Ideally compare the entire checksummed address.
+  </Step>
+  <Step title="Use a small test interaction">
+    When appropriate, test with an amount you can afford to lose before making a larger transaction.
+  </Step>
+</Steps>
+
+<Note>
+  Source verification makes the deployed code readable and reproducible. It is not an independent security audit or a guarantee of market value, liquidity, or safety.
+</Note>

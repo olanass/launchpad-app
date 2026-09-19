@@ -6,8 +6,9 @@ function initNavigation() {
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
-      history.pushState(null, '', '/');
+      history.pushState(null, '', view === 'docs' ? '/docs' : '/');
       switchView(view);
+      if (view === 'docs' && window.renderDocsRoute) window.renderDocsRoute();
     });
   });
 

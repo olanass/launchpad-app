@@ -1,0 +1,53 @@
+---
+title: "Endpoint reference"
+description: "A concise reference for the Olanas API launchpad, content-paywall, and facilitator routes."
+---
+
+## API launchpad
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/services` | Create a wallet-signed paid API listing |
+| `GET` | `/api/services` | Browse, search, and filter listings |
+| `GET` | `/api/services/:slug` | Read public service metadata and analytics |
+| `GET` | `/api/services/creator/:address` | List services owned by a creator wallet |
+| `GET` | `/api/services/:slug/logo` | Read the uploaded service logo |
+| `GET` | `/api/services/:slug/health` | Check the configured upstream endpoint |
+| `PATCH` | `/api/services/:slug` | Wallet-signed update, pause, or resume |
+| `DELETE` | `/api/services/:slug` | Wallet-signed listing deletion |
+| `GET` | `/discovery/resources` | Discover live paid APIs and payment requirements |
+| `GET/POST/PUT/PATCH/DELETE` | `/x402/:slug/*` | Invoke a paid API using an allowed method |
+
+## Paywalls
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/paywalls/create` | Create a signed text or file listing |
+| `GET` | `/api/paywalls/:id` | Read public listing metadata |
+| `GET` | `/api/paywalls/creator/:address` | List a creator's public listings and totals |
+| `GET` | `/api/paywalls/:id/download` | Receive a 402 challenge or download after verification |
+| `GET` | `/api/paywalls/gas-estimate` | Request an RPC-backed gas estimate |
+
+## Facilitator
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/facilitator/supported` | List configured assets and payment schemes |
+| `POST` | `/facilitator/verify` | Verify a proof without recording settlement |
+| `POST` | `/facilitator/settle` | Verify and persist a durable receipt |
+| `GET` | `/facilitator/receipts/:id` | Retrieve a settlement receipt |
+| `GET` | `/facilitator/analytics` | Read facilitator ledger analytics |
+
+## Browser configuration
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/privy/config` | Return public login and selected-network configuration |
+
+<Note>
+  Legacy email-only wallet creation routes return `410`. An email address is not authentication, and the application does not invent wallet addresses.
+</Note>
+
+## Production storage
+
+The API catalog, logos, receipt reservations, payment redemptions, and usage analytics use Turso in production. Configure `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` before deploying the launchpad.

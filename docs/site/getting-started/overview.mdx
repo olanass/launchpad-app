@@ -1,0 +1,44 @@
+---
+title: "What is Olanas?"
+description: "An introduction to the Olanas content-payment ecosystem."
+---
+
+Olanas is a creator-to-buyer content payment experience built around verifiable onchain transfers. A creator can publish encrypted content behind a paywall, share its link, and deliver the content after the application confirms payment.
+
+## The problem
+
+Digital creators often depend on platforms that control checkout, custody, distribution, and account access. Olanas explores a more direct model in which:
+
+- creators choose the content and price;
+- buyers pay from a compatible wallet;
+- payments go directly to the creator's configured address; and
+- the application verifies the transfer before releasing encrypted content.
+
+## Who it is for
+
+<Columns cols={2}>
+  <Card title="Creators" icon="pen-tool">
+    Publish files or text, set a price, sign the listing, and share a paywall link.
+  </Card>
+  <Card title="Buyers" icon="shopping-bag">
+    Review the payment requirement, approve an onchain transfer, and unlock the purchased content.
+  </Card>
+  <Card title="Developers" icon="braces">
+    Integrate with the verification and settlement interfaces or study the HTTP 402-style flow.
+  </Card>
+  <Card title="Community" icon="users">
+    Help shape documented governance once the team publishes the governance framework.
+  </Card>
+</Columns>
+
+## Current implementation
+
+The repository currently contains a Node.js content-paywall application targeting Robinhood Chain mainnet and testnet. It supports native ETH by default and can support explicitly configured ERC-20 contracts.
+
+<Info>
+  The current payment proof is a project-specific HTTP 402-inspired format. It must not be described as a certified or drop-in implementation of the x402 standard.
+</Info>
+
+## Where the token fits
+
+The token section is prepared for the team's approved utility, tokenomics, deployment, and governance information. Until those details are published, the application and the proposed token should be evaluated separately.

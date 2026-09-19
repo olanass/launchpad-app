@@ -1,0 +1,57 @@
+---
+title: "Network configuration"
+description: "Robinhood Chain mainnet and testnet configuration used by Olanas."
+---
+
+## Supported application networks
+
+<Tabs>
+  <Tab title="Mainnet">
+    | Setting | Value |
+    | --- | --- |
+    | Name | Robinhood Chain |
+    | Chain ID | `4663` |
+    | CAIP-2 | `eip155:4663` |
+    | Native currency | ETH |
+    | Public RPC | `https://rpc.mainnet.chain.robinhood.com` |
+    | Explorer | `https://robinhoodchain.blockscout.com` |
+  </Tab>
+  <Tab title="Testnet">
+    | Setting | Value |
+    | --- | --- |
+    | Name | Robinhood Chain Testnet |
+    | Chain ID | `46630` |
+    | CAIP-2 | `eip155:46630` |
+    | Native currency | Testnet ETH |
+    | Public RPC | `https://rpc.testnet.chain.robinhood.com` |
+    | Explorer | `https://explorer.testnet.chain.robinhood.com` |
+  </Tab>
+</Tabs>
+
+## Select a network
+
+Set `ROBINHOOD_NETWORK` to `mainnet` or `testnet`. Network-scoped RPC and ERC-20 contract settings use the selected network name:
+
+```dotenv
+ROBINHOOD_NETWORK=testnet
+ROBINHOOD_TESTNET_RPC_URL=https://your-rpc.example
+ROBINHOOD_TESTNET_USDC_CONTRACT_ADDRESS=0x...
+```
+
+Never configure a token contract until its address and decimals have been verified for that exact network.
+
+## Mainnet payment asset
+
+The API launchpad defaults to Global Dollar (`USDG`) on Robinhood Chain:
+
+| Setting | Value |
+| --- | --- |
+| Symbol | `USDG` |
+| Decimals | `6` |
+| Contract | [`0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`](https://robinhoodchain.blockscout.com/token/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168) |
+
+Native ETH remains available. Other ERC-20 assets appear only when their verified network-scoped contract addresses are configured.
+
+## Isolation
+
+Testnet uses `ROBINHOOD_TESTNET_DATA_DIR`, or `uploads-testnet` by default, so development records do not mix with mainnet data.

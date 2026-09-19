@@ -11,6 +11,8 @@ function initPaywallViewRouting() {
   } else if (path.includes('/services/')) {
     const serviceSlug = path.split('/services/')[1].split('/')[0].split('?')[0].trim();
     if (serviceSlug) loadServiceDetail(serviceSlug);
+  } else if (path === '/docs' || path.startsWith('/docs/')) {
+    if (window.renderDocsRoute) window.renderDocsRoute();
   } else {
     switchView('service-launch');
   }
@@ -35,6 +37,8 @@ function initPaywallViewRouting() {
     } else if (p.includes('/services/')) {
       const serviceSlug = p.split('/services/')[1].split('/')[0].split('?')[0].trim();
       loadServiceDetail(serviceSlug);
+    } else if (p === '/docs' || p.startsWith('/docs/')) {
+      if (window.renderDocsRoute) window.renderDocsRoute();
     } else {
       switchView('service-launch');
     }

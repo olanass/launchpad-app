@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Olanas">
+  <circle cx="32" cy="32" r="32" fill="#050505"/>
+  <rect x="13" y="19" width="14" height="14" rx="1" fill="none" stroke="#fff" stroke-width="4"/>
+  <circle cx="44" cy="26" r="8" fill="none" stroke="#fff" stroke-width="4"/>
+  <path d="M23 45h20" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+</svg>
