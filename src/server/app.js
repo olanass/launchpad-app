@@ -5,7 +5,7 @@ const agentRouter = require('./agent/routes');
 const privyAuthRouter = require('./auth/routes');
 const path = require('path');
 const { CLIENT_DIR, GENERATED_DIR } = require('./config/paths');
-const CLIENT_INDEX_PATH = require.resolve('../client/index.html');
+const CLIENT_INDEX_PATH = path.join(CLIENT_DIR, 'index.html');
 const { ROBINHOOD_CHAIN_CONFIG } = require('./config/chain');
 const demoApiRouter = require('./demo/routes');
 const facilitatorRouter = require('./facilitator/facilitator');
@@ -15,6 +15,12 @@ const { publicRouter: serviceRouter, gatewayRouter: serviceGatewayRouter, discov
 
 function createApp({ serveClient = true } = {}) {
 const app = express();
+app.get('/api/version', (req, res) => res.set('Cache-Control', 'no-store').json({
+  application: 'x402-launchpad',
+  repository: 'olanass/launchpad-app',
+  commit: process.env.VERCEL_GIT_COMMIT_SHA || null,
+  environment: process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'
+}));
 
 app.use(cors({
   origin: '*',

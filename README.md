@@ -94,7 +94,9 @@ See [`docs/architecture.md`](docs/architecture.md) for module boundaries and dat
 
 Deploy this repository to a Node.js 22 host that runs `npm run build` and `npm start`. The project uses a custom Next.js server because the x402 gateway needs streaming proxy requests, Express middleware, multipart uploads, and the existing payment-verification pipeline in the same process. Keep the configured Turso database and vault storage available to every production instance.
 
-The old Vercel function entry point was removed during the migration. Do not deploy this custom-server build as a default Vercel Next.js project; use a Node.js or container target, or first complete a separate conversion of every Express router to native Next.js route handlers.
+Vercel uses the Next.js framework preset from `vercel.json`. The API adapter in `pages/api/[[...path]].js` mounts the existing Express backend with body parsing disabled so multipart and paid proxy requests keep their original bodies. Next.js rewrites `/x402`, `/facilitator`, `/discovery`, `/agent-runner`, and `/mcp` to this adapter. Local `npm start` also supports the custom server. The deployment must include the same production Turso configuration and existing vault secret; do not generate replacement secrets during migration. Temporary serverless storage is not durable storage for encrypted content uploads.
+
+Use `olanass/launchpad-app` as the Vercel Git repository, `main` as the production branch, and the repository root as the root directory. Assign `olanas.xyz` to this project only after its production APIs have been verified. `/api/version` reports the deployed repository and Vercel commit SHA, making a domain pointing at an older project visible. Run `BASE_URL=<deployment-origin> npm run test:deployment` against the deployed site (set `BASE_URL` with your shell's environment syntax).
 
 ## Documentation portal
 

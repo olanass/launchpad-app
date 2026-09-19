@@ -16,6 +16,7 @@
     "test:paywall": "node --test --test-name-pattern=paywall: tests/regression.test.js",
     "test:browser": "node --test --test-name-pattern=browser: tests/regression.test.js",
     "test:smoke": "node tests/smoke/verify-link.js",
+    "test:deployment": "node tests/smoke/verify-deployment.js",
     "build:assets": "node scripts/build-privy.js",
     "build": "npm run build:assets && next build --webpack",
     "prestart": "npm run build"
