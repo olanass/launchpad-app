@@ -37,7 +37,6 @@ function initServiceLaunchpad() {
   document.getElementById('btnCopyServiceUrl')?.addEventListener('click', event => copyServiceText(document.getElementById('serviceSuccessUrl').textContent, event.currentTarget));
   document.getElementById('btnCopyDetailEndpoint')?.addEventListener('click', event => copyServiceText(serviceUiState.currentService?.gatewayUrl || '', event.currentTarget));
   document.getElementById('btnCopyCurl')?.addEventListener('click', event => copyServiceText(document.getElementById('detailCurl').textContent, event.currentTarget));
-  document.getElementById('serviceProjectsTableBody')?.addEventListener('click', handleServiceManagement);
 
   document.getElementById('serviceSearch')?.addEventListener('input', () => {
     clearTimeout(serviceUiState.searchTimer);
@@ -68,7 +67,7 @@ async function loadServiceNetwork() {
     document.getElementById('serviceNetworkMeta').textContent = `Chain ID ${serviceUiState.network.chainId} · Direct to your wallet`;
     const currency = document.getElementById('serviceCurrency');
     currency.replaceChildren(...serviceUiState.network.tokens.map(token => new Option(token.symbol, token.symbol)));
-    if ([...currency.options].some(option => option.value === 'USDG')) currency.value = 'USDG';
+    if ([...currency.options].some(option => option.value === 'USDC')) currency.value = 'USDC';
     updateServicePreview();
   } catch (error) {
     document.getElementById('btnPublishService').disabled = true;
@@ -81,7 +80,7 @@ function updateServicePreview() {
   const description = document.getElementById('serviceDescription')?.value.trim() || 'AI-ready weather data for apps and autonomous agents.';
   const category = document.getElementById('serviceCategory')?.value || 'AI & Models';
   const price = document.getElementById('servicePrice')?.value.trim() || '0.002';
-  const currency = document.getElementById('serviceCurrency')?.value || 'USDG';
+  const currency = document.getElementById('serviceCurrency')?.value || 'USDC';
   document.getElementById('previewServiceName').textContent = name;
   document.getElementById('previewServiceDescription').textContent = description;
   document.getElementById('previewServiceCategory').textContent = category;
@@ -276,40 +275,5 @@ async function fetchMyServices() {
     if (!response.ok) throw new Error(data.error || 'Could not load services');
     if (!data.services.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:32px">No API services yet. Launch your first endpoint.</td></tr>'; return; }
     tbody.innerHTML = data.services.map(service => `<tr><td><strong>${escapeServiceHtml(service.name)}</strong><div style="font-size:11px;color:var(--text-muted)">${escapeServiceHtml(service.description)}</div></td><td><strong>${escapeServiceHtml(service.price)} ${escapeServiceHtml(service.currency)}</strong></td><td>${Number(service.requests || 0).toLocaleString()}</td><td class="text-success"><strong>${escapeServiceHtml(service.revenue)} ${escapeServiceHtml(service.currency)}</strong></td><td><span class="status-live-pill">${escapeServiceHtml(service.status)}</span></td><td><a href="/services/${encodeURIComponent(service.slug)}" class="btn btn-secondary btn-sm">View ↗</a></td></tr>`).join('');
-    [...tbody.querySelectorAll('tr')].forEach((row, index) => {
-      const service = data.services[index];
-      const cell = row.lastElementChild;
-      cell.insertAdjacentHTML('beforeend', ` <button type='button' class='btn btn-secondary btn-sm' data-service-action='toggle' data-service-slug='${escapeServiceHtml(service.slug)}' data-service-status='${escapeServiceHtml(service.status)}'>${service.status === 'live' ? 'Pause' : 'Resume'}</button> <button type='button' class='btn btn-secondary btn-sm text-danger' data-service-action='delete' data-service-slug='${escapeServiceHtml(service.slug)}'>Delete</button>`);
-    });
   } catch (error) { tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger" style="padding:24px">${escapeServiceHtml(error.message)}</td></tr>`; }
-}
-
-async function handleServiceManagement(event) {
-  const button = event.target.closest('button[data-service-action]');
-  if (!button || !state.currentWallet) return;
-  const action = button.dataset.serviceAction;
-  const slug = button.dataset.serviceSlug;
-  if (action === 'delete' && !confirm('Delete this API listing permanently?')) return;
-  const changes = action === 'toggle' ? { status: button.dataset.serviceStatus === 'live' ? 'paused' : 'live' } : {};
-  const requestAction = action === 'delete' ? 'delete' : 'update';
-  const creatorTimestamp = String(Date.now());
-  try {
-    const provider = await serviceSigningProvider();
-    if (!provider) throw new Error('Connect the creator wallet first');
-    const message = 'x402 manage service\n' + JSON.stringify({ action: requestAction, slug, changes, timestamp: creatorTimestamp });
-    const creatorSignature = await provider.request({ method: 'personal_sign', params: [message, state.currentWallet.address] });
-    button.disabled = true;
-    const response = await fetch('/api/services/' + encodeURIComponent(slug), {
-      method: action === 'delete' ? 'DELETE' : 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ changes, creatorTimestamp, creatorSignature })
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Service could not be updated');
-    await fetchMyServices();
-    loadServiceMarketplace();
-  } catch (error) {
-    button.disabled = false;
-    showAppNotice({ title: 'Service update failed', message: error.message, type: 'error' });
-  }
 }

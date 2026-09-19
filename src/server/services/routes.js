@@ -1,10 +1,11 @@
 const express = require('express');
 const crypto = require('crypto');
+const fs = require('fs');
 const { ethers } = require('ethers');
 const { ROBINHOOD_CHAIN_CONFIG: chain } = require('../config/chain');
 const { parseAmount } = require('../facilitator/amount');
 const { x402 } = require('../middleware/x402');
-const { serviceStore, publicService, serviceLogo } = require('./store');
+const { serviceStore, publicService, serviceLogoPath } = require('./store');
 const { parseEndpointUrl, resolvePublicEndpoint, joinEndpoint, proxyRequest } = require('./endpoint-security');
 
 const publicRouter = express.Router();
@@ -38,29 +39,6 @@ function validateLogo(body) {
 
 function baseUrl(req) { return (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, ''); }
 
-async function discoveryHandler(req, res, next) {
-  try {
-    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
-    const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
-    const result = await serviceStore.list({ status: 'live', limit, offset });
-    const items = result.services.map(service => {
-      const token = chain.supportedTokens[service.currency];
-      return {
-        resource: `${baseUrl(req)}/x402/${service.slug}`, type: 'http', x402Version: 2,
-        accepts: [{
-          scheme: 'onchain-tx', network: chain.caip2, amount: parseAmount(service.price, service.currency).toString(),
-          asset: token.address || '0x0000000000000000000000000000000000000000',
-          payTo: service.payoutAddress, maxTimeoutSeconds: 300,
-          extra: { name: service.currency, version: '1', proof: 'confirmed-transaction' }
-        }],
-        metadata: { name: service.name, description: service.description, methods: service.allowedMethods },
-        lastUpdated: service.updatedAt
-      };
-    });
-    return res.json({ x402Version: 2, items, pagination: { limit, offset, total: result.total } });
-  } catch (error) { return next(error); }
-}
-
 function creationPayload(input) {
   return {
     name: input.name, description: input.description, category: input.category, videoUrl: input.videoUrl || '', logoHash: input.logoHash || '',
@@ -72,22 +50,6 @@ function creationPayload(input) {
 }
 
 function serviceCreationMessage(input) { return CREATION_PREFIX + JSON.stringify(creationPayload(input)); }
-function managementMessage(action, slug, changes, timestamp) {
-  return 'x402 manage service\n' + JSON.stringify({ action, slug, changes, timestamp });
-}
-
-function verifyManagement(service, action, changes, body) {
-  const timestamp = body.creatorTimestamp;
-  if (!/^\d{13}$/.test(timestamp || '') || Math.abs(Date.now() - Number(timestamp)) > 300000) {
-    throw Object.assign(new Error('Management signature expired'), { status: 400 });
-  }
-  let signer;
-  try { signer = ethers.verifyMessage(managementMessage(action, service.slug, changes, timestamp), body.creatorSignature); }
-  catch (_) { throw Object.assign(new Error('Valid creator signature required'), { status: 401 }); }
-  if (signer.toLowerCase() !== service.creatorAddress.toLowerCase()) {
-    throw Object.assign(new Error('Only the creator wallet can manage this service'), { status: 403 });
-  }
-}
 
 function validateCreation(body) {
   const name = typeof body.name === 'string' ? body.name.trim() : '';
@@ -114,11 +76,7 @@ function validateCreation(body) {
   parseAmount(body.price, currency);
   if (!ethers.isAddress(creatorAddress) || !ethers.isAddress(payoutAddress)) throw Object.assign(new Error('Valid creator and payout addresses are required'), { status: 400 });
   if (!/^\d{13}$/.test(creatorTimestamp || '') || Math.abs(Date.now() - Number(creatorTimestamp)) > 300000) throw Object.assign(new Error('Creator signature expired'), { status: 400 });
-  return {
-    name, description, category, videoUrl, logo, logoHash, endpointUrl, allowedMethods,
-    price: body.price, currency, creatorAddress, payoutAddress,
-    creatorTimestamp, creatorSignature: body.creatorSignature
-  };
+  return { name, description, category, videoUrl, logo, logoHash, endpointUrl, allowedMethods, price: body.price, currency, creatorAddress, payoutAddress, creatorTimestamp, creatorSignature: body.creatorSignature };
 }
 
 publicRouter.get('/networks', (req, res) => res.json({
@@ -129,122 +87,47 @@ publicRouter.get('/networks', (req, res) => res.json({
     tokens: Object.values(chain.supportedTokens).map(token => ({ symbol: token.symbol, name: token.name, decimals: token.decimals, address: token.address }))
   }]
 }));
-publicRouter.get('/discovery/resources', discoveryHandler);
 
 publicRouter.post('/', async (req, res, next) => {
   try {
     const input = validateCreation(req.body || {});
-    if (await serviceStore.hasCreationSignature(input.creatorSignature)) throw Object.assign(new Error('Creation signature already used'), { status: 400 });
+    if (serviceStore.hasCreationSignature(input.creatorSignature)) throw Object.assign(new Error('Creation signature already used'), { status: 400 });
     let signer;
     try { signer = ethers.verifyMessage(serviceCreationMessage(input), input.creatorSignature); }
     catch (_) { throw Object.assign(new Error('Valid creator signature required'), { status: 400 }); }
     if (signer.toLowerCase() !== input.creatorAddress.toLowerCase()) throw Object.assign(new Error('Creator signature mismatch'), { status: 400 });
     await resolvePublicEndpoint(input.endpointUrl);
-    const service = await serviceStore.create(input);
+    const service = serviceStore.create(input);
     res.status(201).json({ success: true, service: publicService(service, baseUrl(req)) });
   } catch (error) { next(error); }
 });
 
-publicRouter.get('/', async (req, res, next) => {
+publicRouter.get('/', (req, res, next) => {
   try {
     const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
     const offset = Math.max(Number.parseInt(req.query.offset, 10) || 0, 0);
-    const result = await serviceStore.list({ status: req.query.status, category: req.query.category, search: req.query.search, limit, offset });
+    const result = serviceStore.list({ status: req.query.status, category: req.query.category, search: req.query.search, limit, offset });
     res.json({ success: true, total: result.total, limit, offset, services: result.services.map(service => publicService(service, baseUrl(req))) });
   } catch (error) { next(error); }
 });
 
-publicRouter.get('/creator/:address', async (req, res, next) => {
+publicRouter.get('/creator/:address', (req, res) => {
   if (!ethers.isAddress(req.params.address)) return res.status(400).json({ error: 'Invalid wallet address' });
-  try {
-    const services = (await serviceStore.byCreator(req.params.address)).map(service => publicService(service, baseUrl(req)));
-    return res.json({ success: true, creator: req.params.address, count: services.length, services });
-  } catch (error) { return next(error); }
+  const services = serviceStore.byCreator(req.params.address).map(service => publicService(service, baseUrl(req)));
+  return res.json({ success: true, creator: req.params.address, count: services.length, services });
 });
 
-publicRouter.get('/:slug/logo', async (req, res, next) => {
-  let service;
-  try { service = await serviceStore.getBySlug(req.params.slug); } catch (error) { return next(error); }
-  const logo = serviceLogo(service);
-  if (!service || !logo) return res.status(404).json({ error: 'Service logo not found' });
+publicRouter.get('/:slug/logo', (req, res) => {
+  const service = serviceStore.getBySlug(req.params.slug);
+  const logoPath = serviceLogoPath(service);
+  if (!service || !logoPath || !fs.existsSync(logoPath)) return res.status(404).json({ error: 'Service logo not found' });
   res.set('Cache-Control', 'public, max-age=86400, immutable');
-  res.type(logo.mimeType);
-  return res.send(logo.buffer);
+  res.type(service.logo.mimeType);
+  return res.sendFile(logoPath);
 });
 
-publicRouter.get('/:slug/health', async (req, res, next) => {
-  try {
-    const service = await serviceStore.getBySlug(req.params.slug);
-    if (!service) return res.status(404).json({ error: 'Service not found' });
-    const startedAt = Date.now();
-    const upstream = await proxyRequest(service.endpointUrl, { method: 'HEAD', headers: { 'user-agent': 'x402-launchpad-health/1.0' }, body: Buffer.alloc(0) });
-    return res.json({ success: upstream.status < 500, status: upstream.status, latencyMs: Date.now() - startedAt, checkedAt: new Date().toISOString() });
-  } catch (error) {
-    return res.status(error.status || 502).json({ success: false, error: 'Endpoint health check failed', checkedAt: new Date().toISOString() });
-  }
-});
-
-publicRouter.patch('/:slug', async (req, res, next) => {
-  try {
-    const service = await serviceStore.getBySlug(req.params.slug);
-    if (!service) return res.status(404).json({ error: 'Service not found' });
-    const requested = req.body?.changes || {};
-    const changes = {};
-    if (requested.name != null) {
-      changes.name = String(requested.name).trim();
-      if (!changes.name || changes.name.length > 120) throw Object.assign(new Error('Invalid service name'), { status: 400 });
-    }
-    if (requested.description != null) {
-      changes.description = String(requested.description).trim();
-      if (changes.description.length > 2000) throw Object.assign(new Error('Description is too long'), { status: 400 });
-    }
-    if (requested.videoUrl != null) {
-      changes.videoUrl = String(requested.videoUrl).trim();
-      if (changes.videoUrl) {
-        const parsed = new URL(changes.videoUrl);
-        if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error('Invalid video URL');
-        changes.videoUrl = parsed.toString();
-      }
-    }
-    if (requested.status != null) {
-      changes.status = String(requested.status);
-      if (!['live', 'paused'].includes(changes.status)) throw Object.assign(new Error('Status must be live or paused'), { status: 400 });
-    }
-    if (requested.price != null) { parseAmount(String(requested.price), service.currency); changes.price = String(requested.price); }
-    if (requested.endpointUrl != null) {
-      changes.endpointUrl = parseEndpointUrl(requested.endpointUrl).toString();
-      await resolvePublicEndpoint(changes.endpointUrl);
-    }
-    if (requested.allowedMethods != null) {
-      changes.allowedMethods = [...new Set(requested.allowedMethods.map(value => String(value).toUpperCase()))].sort();
-      if (!changes.allowedMethods.length || changes.allowedMethods.some(method => !ALLOWED_METHODS.has(method))) throw Object.assign(new Error('Invalid methods'), { status: 400 });
-    }
-    if (!Object.keys(changes).length) throw Object.assign(new Error('No supported changes supplied'), { status: 400 });
-    verifyManagement(service, 'update', changes, req.body || {});
-    if (!await serviceStore.claimManagementSignature(service.serviceId, 'update', req.body.creatorSignature)) {
-      throw Object.assign(new Error('Management signature already used'), { status: 409 });
-    }
-    await serviceStore.update(service, changes);
-    return res.json({ success: true, service: publicService(service, baseUrl(req)) });
-  } catch (error) { return next(error); }
-});
-
-publicRouter.delete('/:slug', async (req, res, next) => {
-  try {
-    const service = await serviceStore.getBySlug(req.params.slug);
-    if (!service) return res.status(404).json({ error: 'Service not found' });
-    verifyManagement(service, 'delete', {}, req.body || {});
-    if (!await serviceStore.claimManagementSignature(service.serviceId, 'delete', req.body.creatorSignature)) {
-      throw Object.assign(new Error('Management signature already used'), { status: 409 });
-    }
-    await serviceStore.remove(service);
-    return res.json({ success: true });
-  } catch (error) { return next(error); }
-});
-
-publicRouter.get('/:slug', async (req, res, next) => {
-  let service;
-  try { service = await serviceStore.getBySlug(req.params.slug); } catch (error) { return next(error); }
+publicRouter.get('/:slug', (req, res) => {
+  const service = serviceStore.getBySlug(req.params.slug);
   if (!service) return res.status(404).json({ error: 'Service not found' });
   return res.json({ success: true, service: publicService(service, baseUrl(req)) });
 });
@@ -274,22 +157,17 @@ function forwardedHeaders(req, body) {
   return headers;
 }
 
-gatewayRouter.use('/:slug', async (req, res, next) => {
-  let service;
-  try { service = await serviceStore.getBySlug(req.params.slug); } catch (error) { return next(error); }
+gatewayRouter.use('/:slug', (req, res, next) => {
+  const service = serviceStore.getBySlug(req.params.slug);
   if (!service) return res.status(404).json({ error: 'Service not found' });
   if (service.status !== 'live') return res.status(503).json({ error: 'Service is not live' });
   if (!service.allowedMethods.includes(req.method)) return res.status(405).set('Allow', service.allowedMethods.join(', ')).json({ error: 'Method not allowed' });
-  return x402({
-    price: service.price, token: service.currency, recipient: service.payoutAddress,
-    settle: (data, metadata) => serviceStore.settlePayment(data, metadata)
-  })(req, res, async () => {
+  return x402({ price: service.price, token: service.currency, recipient: service.payoutAddress })(req, res, async () => {
     const startedAt = Date.now();
     const receipt = req.x402.receipt;
     try {
-      if (!await serviceStore.reserveReceipt(service.serviceId, receipt.receiptId)) {
-        return res.status(409).json({ error: 'Payment proof has already completed an API request' });
-      }
+      if (receipt.replayed) return res.status(409).json({ error: 'Payment proof has already been used for this API request' });
+      serviceStore.recordPayment(service.serviceId, receipt);
       const body = ['GET', 'HEAD'].includes(req.method) ? Buffer.alloc(0) : await readRequestBody(req);
       const suffix = req.path.replace(/^\/+/, '');
       const target = joinEndpoint(service.endpointUrl, suffix, new URL(req.originalUrl, 'http://gateway.invalid').search);
@@ -300,13 +178,13 @@ gatewayRouter.use('/:slug', async (req, res, next) => {
       res.set('X-X402-Service', service.slug);
       res.set('X-X402-Receipt', receipt.receiptId);
       const success = upstream.status >= 200 && upstream.status < 400;
-      await serviceStore.recordResult(service.serviceId, receipt, { status: upstream.status, latencyMs: Date.now() - startedAt, success });
+      serviceStore.recordResult(service.serviceId, { receiptId: receipt.receiptId, status: upstream.status, latencyMs: Date.now() - startedAt, success });
       return res.status(upstream.status).send(upstream.body);
     } catch (error) {
-      await serviceStore.recordResult(service.serviceId, receipt, { status: error.status || 502, latencyMs: Date.now() - startedAt, success: false });
+      serviceStore.recordResult(service.serviceId, { receiptId: receipt.receiptId, status: error.status || 502, latencyMs: Date.now() - startedAt, success: false });
       return next(Object.assign(error, { status: error.status || 502 }));
     }
   });
 });
 
-module.exports = { publicRouter, gatewayRouter, discoveryHandler, serviceCreationMessage, creationPayload, managementMessage };
+module.exports = { publicRouter, gatewayRouter, serviceCreationMessage, creationPayload };

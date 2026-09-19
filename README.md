@@ -1,37 +1,6 @@
-# Robinhood Chain API launchpad and x402-inspired paywall
+# x402-inspired content paywall
 
-This application lets developers publish an existing HTTP endpoint as a paid API on Robinhood Chain. It creates a public listing, an HTTP 402 gateway, on-chain payment verification, durable usage analytics, logo and video metadata, and wallet-signed creator controls. The repository also contains the original encrypted-content paywall.
-
-The launchpad exposes an x402 v2-shaped discovery and challenge envelope using the confirmed-transaction scheme. Buyers submit a mined Robinhood Chain transaction as proof. This is honest x402-compatible metadata, but it is not the standard exact scheme and does not submit or settle a transaction for the buyer.
-
-## API launchpad
-
-Developers connect a wallet, paste a public API URL, choose one or more HTTP methods, set a per-request price, optionally upload a logo and add a video URL, and sign the listing. The platform publishes the API at `/x402/:slug`.
-
-On a paid request:
-
-1. The gateway returns HTTP 402 with a `PAYMENT-REQUIRED` challenge when proof is missing.
-2. The client transfers the exact listed amount to the developer payout address on Robinhood Chain.
-3. The client retries with its base64 payment proof in `PAYMENT-SIGNATURE`.
-4. The server verifies the mined transfer, reserves the receipt, and proxies the request to the developer endpoint.
-5. Only a successful upstream response counts as a paid request and revenue. A failed upstream response releases that payment proof for a retry.
-
-USDG is the default stable payment token. Its canonical Robinhood Chain address is `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`, with 6 decimals. Other currencies are available only when their verified contract addresses are explicitly configured.
-
-### Launchpad API
-
-- `POST /api/services`: create a wallet-signed service listing.
-- `GET /api/services`: browse and search listings.
-- `GET /api/services/:slug`: public listing and live analytics.
-- `GET /api/services/creator/:address`: services owned by a creator wallet.
-- `GET /api/services/:slug/logo`: durable uploaded logo.
-- `GET /api/services/:slug/health`: check the upstream endpoint.
-- `PATCH /api/services/:slug`: wallet-signed update, pause, or resume.
-- `DELETE /api/services/:slug`: wallet-signed deletion.
-- `GET /discovery/resources`: x402 v2-shaped discovery metadata for all live APIs.
-- `GET|POST|PUT|PATCH|DELETE /x402/:slug/*`: paid API gateway, limited to the methods selected by the creator.
-
-Creation and management signatures are bound to the exact listing/action payload and expire after five minutes. Endpoint validation rejects private, loopback, link-local, and otherwise unsafe destinations.
+This application encrypts uploaded content and unlocks downloads after verifying a transfer on Robinhood Chain. It uses a custom HTTP 402 proof format; it is not a certified or drop-in standard x402 facilitator.
 
 ## Run
 
@@ -44,8 +13,6 @@ Use Node.js 22 or newer.
 5. Run `npm start`. This first builds the wallet bundle, then starts the server on port 4020.
 6. Use `npm run dev` for local development with automatic server restarts.
 7. Run `npm test` for isolated tests. They do not need RPC access, real wallet keys, or funds.
-
-For local launchpad development, the service catalog uses `uploads/launchpad.db`. Production deliberately fails closed unless `TURSO_DATABASE_URL` is set. Set `TURSO_AUTH_TOKEN` as well when the database requires authentication. This prevents listings, logos, receipts, and analytics from disappearing across serverless instances or deployments.
 
 The generated Privy bundle is built from `src/client/integrations/privy-bridge.jsx` using the pinned esbuild WebAssembly compiler. Run `npm run build` after editing that source. Direct browser wallets remain available when Privy is unavailable.
 
@@ -145,8 +112,6 @@ Demo API routes and the allowlisted agent runner are unavailable outside demo mo
 ## Storage and migration
 
 Run one server process per data directory. Paywall metadata uses synchronous atomic replacement; this is not a multi-worker database. Redemption claims use exclusive file creation. Back up the entire data directory and its encryption secret together.
-
-Launchpad data is separate from paywall data. It uses libSQL locally and Turso in production. Its service records, uploaded logos, receipt reservations, payment redemptions, and analytics are durable and safe to share across concurrent serverless instances. Configure `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` in every production environment before deploying this version.
 
 Uploads are limited to 25 MiB and are buffered for encryption and delivery. Use deployment-level request limits and storage quotas appropriate to your traffic. Optional IPFS pinning uploads ciphertext only. Browser P2P sharing is disabled.
 

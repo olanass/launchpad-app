@@ -22,10 +22,6 @@ const NETWORKS = {
 };
 
 const safeAddress = address => ethers.getAddress(address.toLowerCase());
-const CANONICAL_MAINNET_TOKENS = {
-  // Paxos Global Dollar on Robinhood Chain. Verified on-chain: symbol USDG, 6 decimals.
-  USDG: { symbol: 'USDG', name: 'Global Dollar', decimals: 6, address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168' }
-};
 
 function getRobinhoodChainConfig(requestedNetwork) {
   const networkKey = (requestedNetwork || 'mainnet').toLowerCase();
@@ -33,8 +29,7 @@ function getRobinhoodChainConfig(requestedNetwork) {
   const network = NETWORKS[networkKey];
   const demoMode = process.env.X402_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
   const tokens = { ETH: { symbol: 'ETH', name: 'Ether', decimals: 18, address: null } };
-  if (networkKey === 'mainnet') tokens.USDG = { ...CANONICAL_MAINNET_TOKENS.USDG };
-  for (const [symbol, decimals] of [['USDC', 6], ['WETH', 18], ['X402PAY', 18], ['USDG', 6]]) {
+  for (const [symbol, decimals] of [['USDC', 6], ['WETH', 18], ['X402PAY', 18]]) {
     const scopedKey = `ROBINHOOD_${networkKey.toUpperCase()}_${symbol}_CONTRACT_ADDRESS`;
     const legacyAddress = networkKey === 'mainnet' ? process.env[symbol + '_CONTRACT_ADDRESS'] : undefined;
     const address = process.env[scopedKey] || legacyAddress;
@@ -54,7 +49,7 @@ function getRobinhoodChainConfig(requestedNetwork) {
       ...(demoMode ? [{ id: 'exact', name: 'Demo signed voucher (no funds moved)', status: 'demo' }, { id: 'sandbox', name: 'Demo simulation (no funds moved)', status: 'demo' }] : [])
     ],
     facilitatorAddress: safeAddress(process.env.FACILITATOR_WALLET || '0x71c808E5Bd568B74431b39C1D9e68C8BB9402E1a'),
-    facilitatorFeeBps: 0, version: '2.0.0'
+    facilitatorFeeBps: 0, version: '1.3.0'
   };
 }
 

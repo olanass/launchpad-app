@@ -32,7 +32,6 @@
   "author": "x402 Team",
   "license": "MIT",
   "dependencies": {
-    "@libsql/client": "^0.18.0",
     "@privy-io/js-sdk-core": "^0.76.0",
     "@privy-io/node": "^0.34.0",
     "@privy-io/react-auth": "^3.43.0",
@@ -41,8 +40,7 @@
     "express": "^5.0.1",
     "multer": "^2.4.0",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "ws": "^8.21.3"
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
@@ -50,10 +48,5 @@
   },
   "engines": {
     "node": "22.x"
-  },
-  "overrides": {
-    "viem": {
-      "ws": "8.21.3"
-    }
   }
 }
