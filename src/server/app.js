@@ -9,7 +9,7 @@ const { ROBINHOOD_CHAIN_CONFIG } = require('./config/chain');
 const demoApiRouter = require('./demo/routes');
 const facilitatorRouter = require('./facilitator/facilitator');
 const paywallRouter = require('./paywall/routes');
-const { publicRouter: serviceRouter, gatewayRouter: serviceGatewayRouter } = require('./services/routes');
+const { publicRouter: serviceRouter, gatewayRouter: serviceGatewayRouter, discoveryHandler } = require('./services/routes');
 
 const app = express();
 
@@ -27,6 +27,7 @@ app.use('/facilitator', facilitatorRouter);
 if (ROBINHOOD_CHAIN_CONFIG.demoMode) app.use('/api', demoApiRouter);
 app.use('/api/paywalls', paywallRouter);
 app.use('/api/services', serviceJsonParser, serviceRouter);
+app.get('/discovery/resources', discoveryHandler);
 app.use('/x402', serviceGatewayRouter);
 app.use('/api/privy', privyAuthRouter);
 app.use('/agent-runner', agentRouter);
@@ -44,12 +45,16 @@ app.use(['/api', '/facilitator', '/agent-runner'], (req, res) => {
 
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
-  const status = error.code === 'LIMIT_FILE_SIZE'
+  const status = error.code === 'STORAGE_NOT_CONFIGURED'
+    ? 503
+    : error.code === 'LIMIT_FILE_SIZE'
     ? 413
     : (error.name === 'MulterError' ? 400 : (error.status || 500));
   return res.status(status).json({
     success: false,
-    error: status >= 500 ? 'The request could not be completed' : error.message
+    error: error.code === 'STORAGE_NOT_CONFIGURED'
+      ? 'The service catalog is temporarily unavailable'
+      : (status >= 500 ? 'The request could not be completed' : error.message)
   });
 });
 

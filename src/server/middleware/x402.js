@@ -2,6 +2,37 @@ const { ROBINHOOD_CHAIN_CONFIG } = require('../config/chain');
 const { verifyPayment } = require('../facilitator/verifier');
 const { settlePayment } = require('../facilitator/settler');
 const { store } = require('../facilitator/store');
+const { parseAmount } = require('../facilitator/amount');
+
+function paymentRequiredEnvelope(requirement, req) {
+  const token = ROBINHOOD_CHAIN_CONFIG.supportedTokens[requirement.token];
+  return {
+    x402Version: 2,
+    error: 'Payment required',
+    // Compatibility fields for existing onchain-tx clients during the v2 migration.
+    scheme: requirement.scheme,
+    price: requirement.price,
+    token: requirement.token,
+    network: requirement.network,
+    chainId: requirement.chainId,
+    recipient: requirement.recipient,
+    resource: {
+      url: `${req.protocol}://${req.get('host')}${requirement.resource}`,
+      description: `Paid API request costing ${requirement.price} ${requirement.token}`,
+      mimeType: 'application/json'
+    },
+    accepts: [{
+      scheme: requirement.scheme,
+      network: requirement.caip2,
+      amount: parseAmount(requirement.price, requirement.token).toString(),
+      asset: token.address || '0x0000000000000000000000000000000000000000',
+      payTo: requirement.recipient,
+      maxTimeoutSeconds: requirement.timeoutSeconds,
+      extra: { name: requirement.token, version: '1', proof: 'confirmed-transaction' }
+    }],
+    extensions: {}
+  };
+}
 
 /**
  * Creates an x402 HTTP middleware to protect an Express/Connect route
@@ -19,7 +50,8 @@ function x402(options = {}) {
     token = 'USDC',
     recipient,
     scheme = ROBINHOOD_CHAIN_CONFIG.demoMode ? 'exact' : 'onchain-tx',
-    facilitatorUrl = '/facilitator'
+    facilitatorUrl = '/facilitator',
+    settle = settlePayment
   } = options;
 
   if (!price || !recipient) {
@@ -55,7 +87,8 @@ function x402(options = {}) {
 
     // 2. If no payment proof provided, respond with HTTP 402 Payment Required
     if (!rawPaymentProof) {
-      const challengeJson = JSON.stringify(requirement);
+      const envelope = paymentRequiredEnvelope(requirement, req);
+      const challengeJson = JSON.stringify(envelope);
       const challengeBase64 = Buffer.from(challengeJson).toString('base64');
 
       res.status(402);
@@ -69,6 +102,8 @@ function x402(options = {}) {
         statusCode: 402,
         error: 'Payment Required',
         message: `This resource requires an x402 micropayment of ${price} ${token} on ${ROBINHOOD_CHAIN_CONFIG.name}.`,
+        x402Version: 2,
+        accepts: envelope.accepts,
         challenge: requirement
       });
     }
@@ -101,7 +136,7 @@ function x402(options = {}) {
         res.status(402);
         res.set({
           'WWW-Authenticate': 'x402 error="invalid_payment"',
-          'PAYMENT-REQUIRED': Buffer.from(JSON.stringify(requirement)).toString('base64')
+          'PAYMENT-REQUIRED': Buffer.from(JSON.stringify(paymentRequiredEnvelope(requirement, req))).toString('base64')
         });
         return res.json({
           statusCode: 402,
@@ -111,7 +146,7 @@ function x402(options = {}) {
       }
 
       // Settle and issue receipt
-      const receipt = settlePayment(verifyResult, {
+      const receipt = await settle(verifyResult, {
         endpoint: requirement.resource,
         method: req.method
       });
