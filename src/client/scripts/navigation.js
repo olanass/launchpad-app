@@ -2,6 +2,38 @@
 // 1. NAVIGATION & ROUTING
 // -------------------------------------------------------------
 function initNavigation() {
+  const header = document.querySelector('.app-header');
+  const mobileToggle = document.getElementById('mobileNavToggle');
+  const mobileClose = document.getElementById('mobileNavClose');
+  const mobileBackdrop = document.getElementById('mobileNavBackdrop');
+  const closeMobileNavigation = () => {
+    if (!header || !mobileToggle) return;
+    header.classList.remove('mobile-nav-open');
+    document.body.classList.remove('mobile-navigation-open');
+    mobileToggle.setAttribute('aria-expanded', 'false');
+    mobileToggle.setAttribute('aria-label', 'Open navigation menu');
+  };
+
+  if (header && mobileToggle) {
+    mobileToggle.addEventListener('click', () => {
+      const isOpen = header.classList.toggle('mobile-nav-open');
+      document.body.classList.toggle('mobile-navigation-open', isOpen);
+      mobileToggle.setAttribute('aria-expanded', String(isOpen));
+      mobileToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+    });
+    if (mobileClose) mobileClose.addEventListener('click', closeMobileNavigation);
+    if (mobileBackdrop) mobileBackdrop.addEventListener('click', closeMobileNavigation);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeMobileNavigation();
+    });
+    document.addEventListener('click', event => {
+      if (!header.contains(event.target)) closeMobileNavigation();
+    });
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 920) closeMobileNavigation();
+    });
+  }
+
   const navBtns = document.querySelectorAll('.nav-btn');
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -9,6 +41,7 @@ function initNavigation() {
       history.pushState(null, '', view === 'docs' ? '/docs' : '/');
       switchView(view);
       if (view === 'docs' && window.renderDocsRoute) window.renderDocsRoute();
+      closeMobileNavigation();
     });
   });
 
@@ -23,6 +56,7 @@ function initNavigation() {
       e.preventDefault();
       history.pushState(null, '', '/');
       switchView('service-launch');
+      closeMobileNavigation();
     });
   }
 }

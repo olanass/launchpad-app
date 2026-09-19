@@ -77,7 +77,7 @@ async function loadServiceNetwork() {
 }
 
 function updateServicePreview() {
-  const name = document.getElementById('serviceName')?.value.trim() || 'WeatherAI';
+  const name = document.getElementById('serviceName')?.value.trim() || 'WeatherAI (Example)';
   const description = document.getElementById('serviceDescription')?.value.trim() || 'AI-ready weather data for apps and autonomous agents.';
   const category = document.getElementById('serviceCategory')?.value || 'AI & Models';
   const price = document.getElementById('servicePrice')?.value.trim() || '0.002';

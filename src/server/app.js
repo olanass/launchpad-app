@@ -11,6 +11,7 @@ const facilitatorRouter = require('./facilitator/facilitator');
 const paywallRouter = require('./paywall/routes');
 const { publicRouter: serviceRouter, gatewayRouter: serviceGatewayRouter, discoveryHandler } = require('./services/routes');
 
+function createApp({ serveClient = true } = {}) {
 const app = express();
 
 app.use(cors({
@@ -36,8 +37,10 @@ const staticOptions = {
   etag: false,
   setHeaders: response => response.setHeader('Cache-Control', 'no-store')
 };
-app.use(express.static(CLIENT_DIR, staticOptions));
-app.use('/p', express.static(CLIENT_DIR, staticOptions));
+if (serveClient) {
+  app.use(express.static(CLIENT_DIR, staticOptions));
+  app.use('/p', express.static(CLIENT_DIR, staticOptions));
+}
 
 app.use(['/api', '/facilitator', '/agent-runner'], (req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
@@ -58,11 +61,16 @@ app.use((error, req, res, next) => {
   });
 });
 
-app.use((req, res) => {
+if (serveClient) app.use((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     return res.status(404).json({ error: 'Endpoint not found' });
   }
   return res.sendFile(CLIENT_INDEX_PATH);
 });
 
+return app;
+}
+
+const app = createApp();
 module.exports = app;
+module.exports.createApp = createApp;

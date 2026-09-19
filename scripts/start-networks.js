@@ -3,14 +3,13 @@ const { loadEnv } = require('../src/server/config/load-env');
 
 loadEnv();
 
-const watch = process.argv.includes('--watch');
+const dev = process.argv.includes('--dev') || process.argv.includes('--watch');
 const processes = [];
 for (const [network, fallbackPort] of [['mainnet', '4020'], ['testnet', '4021']]) {
   const port = process.env[`ROBINHOOD_${network.toUpperCase()}_PORT`] || fallbackPort;
-  const args = [...(watch ? ['--watch'] : []), 'src/server/index.js'];
-  const child = spawn(process.execPath, args, {
+  const child = spawn(process.execPath, ['server.js'], {
     cwd: require('path').resolve(__dirname, '..'),
-    env: { ...process.env, ROBINHOOD_NETWORK: network, PORT: port },
+    env: { ...process.env, ROBINHOOD_NETWORK: network, PORT: port, NEXT_DEV: dev ? 'true' : 'false' },
     stdio: 'inherit',
     windowsHide: true
   });

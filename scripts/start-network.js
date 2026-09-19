@@ -14,4 +14,5 @@ const defaultRpc = network === 'testnet'
   : 'https://rpc.mainnet.chain.robinhood.com';
 process.env.ROBINHOOD_RPC_URL = process.env[scopedRpcKey] || defaultRpc;
 
-require('../src/server/index');
+process.env.NEXT_DEV = String(process.env.npm_lifecycle_event || '').startsWith('dev') ? 'true' : 'false';
+require('../server');

@@ -1,5 +1,7 @@
 # Robinhood Chain API launchpad and x402-inspired paywall
 
+The application runs on Next.js 16 with the App Router. Next.js owns the page shell, metadata, catch-all product routes, asset delivery, development server, and production build. The existing Express routers remain mounted inside the custom Next.js server for payment verification, multipart uploads, x402 proxying, and storage; this preserves the audited middleware behavior while giving the project one runtime and one entry point.
+
 This application lets developers publish an existing HTTP endpoint as a paid API on Robinhood Chain. It creates a public listing, an HTTP 402 gateway, on-chain payment verification, durable usage analytics, logo and video metadata, and wallet-signed creator controls. The repository also contains the original encrypted-content paywall.
 
 The launchpad exposes an x402 v2-shaped discovery and challenge envelope using the confirmed-transaction scheme. Buyers submit a mined Robinhood Chain transaction as proof. This is honest x402-compatible metadata, but it is not the standard exact scheme and does not submit or settle a transaction for the buyer.
@@ -41,8 +43,8 @@ Use Node.js 22 or newer.
 2. For a new installation only, copy `.env.example` to `.env`. Preserve an existing `.env` and vault key. Set `VAULT_MASTER_SECRET` to a random secret of at least 32 characters. For example, generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 3. Set `PUBLIC_BASE_URL` to the externally accessible origin. Configure token contracts explicitly if accepting USDC, WETH, or another supported token. The default supports native ETH.
 4. Optionally set `PRIVY_APP_ID` for authenticated browser wallet login.
-5. Run `npm start`. This first builds the wallet bundle, then starts the server on port 4020.
-6. Use `npm run dev` for local development with automatic server restarts.
+5. Run `npm start`. This builds the browser assets and optimized Next.js application, then starts the production server on port 4020.
+6. Use `npm run dev` for local Next.js development with automatic server restarts.
 7. Run `npm test` for isolated tests. They do not need RPC access, real wallet keys, or funds.
 
 For local launchpad development, the service catalog uses `uploads/launchpad.db`. Production deliberately fails closed unless `TURSO_DATABASE_URL` is set. Set `TURSO_AUTH_TOKEN` as well when the database requires authentication. This prevents listings, logos, receipts, and analytics from disappearing across serverless instances or deployments.
@@ -73,13 +75,21 @@ For a dedicated testnet environment file, copy `.env.testnet.example` to `.env` 
 
 ## Project structure
 
-- `src/client`: browser assets, application script, styles, and wallet integration.
-- `src/server`: API routes, payment verification, paywall services, and encrypted storage.
+- `app`: Next.js App Router pages, metadata, global styling, and browser-runtime bootstrap.
+- `server.js`: shared Next.js and API server entry point.
+- `src/client`: browser assets, application modules, styles, and wallet integration loaded by the Next.js page shell.
+- `src/server`: Express API routers, payment verification, paywall services, and encrypted storage mounted by the Next.js server.
 - `tests`: regression and live smoke tests.
 - `scripts`: build-time utilities.
 - `docs`: architecture and maintenance documentation.
 
 See [`docs/architecture.md`](docs/architecture.md) for module boundaries and data flow.
+
+## Deployment
+
+Deploy this repository to a Node.js 22 host that runs `npm run build` and `npm start`. The project uses a custom Next.js server because the x402 gateway needs streaming proxy requests, Express middleware, multipart uploads, and the existing payment-verification pipeline in the same process. Keep the configured Turso database and vault storage available to every production instance.
+
+The old Vercel function entry point was removed during the migration. Do not deploy this custom-server build as a default Vercel Next.js project; use a Node.js or container target, or first complete a separate conversion of every Express router to native Next.js route handlers.
 
 ## Documentation portal
 
