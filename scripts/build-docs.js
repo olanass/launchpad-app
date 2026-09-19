@@ -67,10 +67,13 @@ async function buildDocs() {
   }
 
   const pages = {};
+  const markdownPages = {};
   for (const slug of slugs) {
     const { source } = readPage(slug);
     const parsed = frontmatter(source, slug);
-    let html = await marked.parse(mintlifyToMarkdown(parsed.body), { gfm: true });
+    const markdown = mintlifyToMarkdown(parsed.body).trim();
+    markdownPages[slug] = `# ${parsed.title}\n\n${parsed.description ? parsed.description + '\n\n' : ''}${markdown}\n`;
+    let html = await marked.parse(markdown, { gfm: true });
     html = html.replace(/href="\/(?!docs(?:\/|"))/g, 'href="/docs/');
     pages[slug] = {
       slug,
@@ -93,6 +96,25 @@ async function buildDocs() {
     pages
   };
   fs.writeFileSync(path.join(generatedRoot, 'docs-content.js'), `window.OLANAS_DOCS = ${JSON.stringify(payload)};\n`);
+  const markdownRoot = path.join(generatedRoot, 'docs-markdown');
+  fs.rmSync(markdownRoot, { recursive: true, force: true });
+  for (const [slug, markdown] of Object.entries(markdownPages)) {
+    const output = path.join(markdownRoot, slug + '.md');
+    fs.mkdirSync(path.dirname(output), { recursive: true });
+    fs.writeFileSync(output, markdown);
+  }
+  const llms = [
+    '# Olanas',
+    '',
+    '> The API launchpad for Robinhood Chain. Turn HTTP endpoints into x402-paid products for humans and AI agents.',
+    '',
+    'Canonical site: https://olanas.xyz',
+    'MCP endpoint: https://olanas.xyz/mcp',
+    'API discovery: https://olanas.xyz/discovery/resources',
+    '',
+    ...slugs.flatMap(slug => [`## ${pages[slug].title}`, '', `Source: https://olanas.xyz/docs/${slug}.md`, '', markdownPages[slug], ''])
+  ].join('\n');
+  fs.writeFileSync(path.join(generatedRoot, 'llms.txt'), llms);
   console.log(`Documentation portal built with ${slugs.length} pages.`);
 }
 

@@ -6,6 +6,7 @@ const { parseAmount } = require('../facilitator/amount');
 const { x402 } = require('../middleware/x402');
 const { serviceStore, publicService, serviceLogo } = require('./store');
 const { parseEndpointUrl, resolvePublicEndpoint, joinEndpoint, proxyRequest } = require('./endpoint-security');
+const { validateOpenApi, publicOpenApi, inputSchema } = require('./openapi');
 
 const publicRouter = express.Router();
 const gatewayRouter = express.Router();
@@ -53,7 +54,11 @@ async function discoveryHandler(req, res, next) {
           payTo: service.payoutAddress, maxTimeoutSeconds: 300,
           extra: { name: service.currency, version: '1', proof: 'confirmed-transaction' }
         }],
-        metadata: { name: service.name, description: service.description, methods: service.allowedMethods },
+        metadata: {
+          name: service.name, description: service.description, methods: service.allowedMethods,
+          openapi: service.openapiDocument ? `${baseUrl(req)}/api/services/${encodeURIComponent(service.slug)}/openapi.json` : null,
+          input: inputSchema(service)
+        },
         lastUpdated: service.updatedAt
       };
     });
@@ -63,7 +68,8 @@ async function discoveryHandler(req, res, next) {
 
 function creationPayload(input) {
   return {
-    name: input.name, description: input.description, category: input.category, videoUrl: input.videoUrl || '', logoHash: input.logoHash || '',
+    name: input.name, description: input.description, category: input.category, videoUrl: input.videoUrl || '',
+    logoHash: input.logoHash || '', openapiHash: input.openapiHash || '',
     endpointUrl: input.endpointUrl, allowedMethods: input.allowedMethods,
     price: input.price, currency: input.currency,
     creatorAddress: input.creatorAddress.toLowerCase(), payoutAddress: input.payoutAddress.toLowerCase(),
@@ -107,6 +113,7 @@ function validateCreation(body) {
   const payoutAddress = body.payoutAddress || creatorAddress;
   const creatorTimestamp = body.creatorTimestamp;
   const { logo, logoHash } = validateLogo(body);
+  const { document: openapiDocument, hash: openapiHash } = validateOpenApi(body.openapiDocument, body.openapiHash || '');
   if (!name || name.length > 120) throw Object.assign(new Error('Service name is required and must be at most 120 characters'), { status: 400 });
   if (description.length > 2000 || !category || category.length > 80) throw Object.assign(new Error('Description or category is too long'), { status: 400 });
   if (!allowedMethods.length || allowedMethods.some(method => !ALLOWED_METHODS.has(method))) throw Object.assign(new Error('Choose at least one supported HTTP method'), { status: 400 });
@@ -115,7 +122,7 @@ function validateCreation(body) {
   if (!ethers.isAddress(creatorAddress) || !ethers.isAddress(payoutAddress)) throw Object.assign(new Error('Valid creator and payout addresses are required'), { status: 400 });
   if (!/^\d{13}$/.test(creatorTimestamp || '') || Math.abs(Date.now() - Number(creatorTimestamp)) > 300000) throw Object.assign(new Error('Creator signature expired'), { status: 400 });
   return {
-    name, description, category, videoUrl, logo, logoHash, endpointUrl, allowedMethods,
+    name, description, category, videoUrl, logo, logoHash, openapiDocument, openapiHash, endpointUrl, allowedMethods,
     price: body.price, currency, creatorAddress, payoutAddress,
     creatorTimestamp, creatorSignature: body.creatorSignature
   };
@@ -170,6 +177,15 @@ publicRouter.get('/:slug/logo', async (req, res, next) => {
   res.set('Cache-Control', 'public, max-age=86400, immutable');
   res.type(logo.mimeType);
   return res.send(logo.buffer);
+});
+
+publicRouter.get('/:slug/openapi.json', async (req, res, next) => {
+  try {
+    const service = await serviceStore.getBySlug(req.params.slug);
+    if (!service || !service.openapiDocument) return res.status(404).json({ error: 'OpenAPI document not found' });
+    res.set('Cache-Control', 'public, max-age=300');
+    return res.json(publicOpenApi(service, `${baseUrl(req)}/x402/${encodeURIComponent(service.slug)}`));
+  } catch (error) { return next(error); }
 });
 
 publicRouter.get('/:slug/health', async (req, res, next) => {

@@ -3,12 +3,14 @@ const cors = require('cors');
 
 const agentRouter = require('./agent/routes');
 const privyAuthRouter = require('./auth/routes');
-const { CLIENT_DIR } = require('./config/paths');
+const path = require('path');
+const { CLIENT_DIR, GENERATED_DIR } = require('./config/paths');
 const CLIENT_INDEX_PATH = require.resolve('../client/index.html');
 const { ROBINHOOD_CHAIN_CONFIG } = require('./config/chain');
 const demoApiRouter = require('./demo/routes');
 const facilitatorRouter = require('./facilitator/facilitator');
 const paywallRouter = require('./paywall/routes');
+const { router: mcpRouter } = require('./mcp/routes');
 const { publicRouter: serviceRouter, gatewayRouter: serviceGatewayRouter, discoveryHandler } = require('./services/routes');
 
 function createApp({ serveClient = true } = {}) {
@@ -32,6 +34,13 @@ app.get('/discovery/resources', discoveryHandler);
 app.use('/x402', serviceGatewayRouter);
 app.use('/api/privy', privyAuthRouter);
 app.use('/agent-runner', agentRouter);
+app.use('/mcp', mcpRouter);
+app.get('/llms.txt', (req, res) => res.type('text/plain').sendFile(path.join(GENERATED_DIR, 'llms.txt')));
+app.get(/^\/docs\/(.+)\.md$/, (req, res, next) => {
+  const relative = String(req.params[0] || '').replace(/\\/g, '/');
+  if (!/^[a-z0-9/_-]+$/i.test(relative) || relative.includes('..')) return next();
+  return res.type('text/markdown').sendFile(path.join(GENERATED_DIR, 'docs-markdown', relative + '.md'));
+});
 
 const staticOptions = {
   etag: false,
@@ -42,7 +51,7 @@ if (serveClient) {
   app.use('/p', express.static(CLIENT_DIR, staticOptions));
 }
 
-app.use(['/api', '/facilitator', '/agent-runner'], (req, res) => {
+app.use(['/api', '/facilitator', '/agent-runner', '/mcp'], (req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 

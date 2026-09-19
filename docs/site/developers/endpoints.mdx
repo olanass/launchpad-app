@@ -12,11 +12,20 @@ description: "A concise reference for the Olanas API launchpad, content-paywall,
 | `GET` | `/api/services/:slug` | Read public service metadata and analytics |
 | `GET` | `/api/services/creator/:address` | List services owned by a creator wallet |
 | `GET` | `/api/services/:slug/logo` | Read the uploaded service logo |
+| `GET` | `/api/services/:slug/openapi.json` | Read the optional gateway-rewritten OpenAPI document |
 | `GET` | `/api/services/:slug/health` | Check the configured upstream endpoint |
 | `PATCH` | `/api/services/:slug` | Wallet-signed update, pause, or resume |
 | `DELETE` | `/api/services/:slug` | Wallet-signed listing deletion |
 | `GET` | `/discovery/resources` | Discover live paid APIs and payment requirements |
 | `GET/POST/PUT/PATCH/DELETE` | `/x402/:slug/*` | Invoke a paid API using an allowed method |
+
+## Agent interfaces
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/mcp` | Stateless Streamable HTTP MCP server with discovery, call, balance, and receipt tools |
+| `GET` | `/llms.txt` | Combined AI-readable product and developer documentation |
+| `GET` | `/docs/:page.md` | Raw Markdown for one documentation page |
 
 ## Paywalls
 

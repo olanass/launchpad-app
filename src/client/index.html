@@ -190,6 +190,14 @@
               <div class="form-group"><label for="serviceCategory">Category</label><select id="serviceCategory" class="form-control"><option>AI & Models</option><option>Data</option><option>Developer Tools</option><option>Finance</option><option>Media</option><option>Other</option></select></div>
               <div class="form-group service-span-2"><label for="serviceDescription">One-line description</label><input id="serviceDescription" class="form-control" maxlength="2000" placeholder="AI-ready weather data for apps and autonomous agents"></div>
               <div class="form-group service-span-2"><label for="serviceVideoUrl">Demo video link <span>Optional</span></label><div class="endpoint-input-wrap video-input-wrap"><span>▶</span><input id="serviceVideoUrl" class="form-control" type="url" maxlength="1000" placeholder="https://youtube.com/watch?v=..." autocomplete="url"></div><small>Add a YouTube, Vimeo, Loom, or public video URL to your project page.</small></div>
+              <div class="form-group service-span-2">
+                <label>OpenAPI schema <span>Optional · JSON · 256 KB max</span></label>
+                <div class="service-spec-uploader">
+                  <input id="serviceOpenApiInput" type="file" accept="application/json,.json" hidden>
+                  <button type="button" id="btnChooseServiceOpenApi"><span>◎</span><div><strong id="serviceOpenApiName">Add openapi.json</strong><small>Lets AI agents understand inputs and responses</small></div><b>Choose file</b></button>
+                  <button type="button" id="btnRemoveServiceOpenApi" hidden>Remove</button>
+                </div>
+              </div>
             </div>
             <div class="builder-divider"></div>
             <div class="builder-heading"><span>Access & pricing</span><b>02</b></div>
@@ -246,12 +254,15 @@
             <div class="detail-endpoint"><code id="detailEndpoint">/x402/weather-ai</code><button type="button" id="btnCopyDetailEndpoint">Copy</button></div>
             <div class="detail-methods" id="detailMethods"><span>POST</span></div>
             <a class="detail-video-link" id="detailVideoLink" href="#" target="_blank" rel="noopener noreferrer" hidden><span>▶</span><div><strong>Watch demo</strong><small>See this API in action</small></div><b>↗</b></a>
+            <a class="detail-video-link" id="detailOpenApiLink" href="#" target="_blank" rel="noopener noreferrer" hidden><span>◎</span><div><strong>OpenAPI schema</strong><small>Machine-readable API contract</small></div><b>↗</b></a>
             <button type="button" class="detail-copy-main" id="btnCopyCurl">Copy request example <span>↗</span></button>
+            <button type="button" class="detail-copy-agent" id="btnCopyAgentCode">Copy agent SDK example <span>↗</span></button>
             <small>First call returns a standard HTTP 402 payment challenge.</small>
           </aside>
         </div>
         <div class="detail-content-grid">
           <div class="detail-code-card"><div><span>Quick start</span><b>cURL</b></div><pre id="detailCurl">curl -i -X POST "https://example.com/x402/weather-ai"</pre></div>
+          <div class="detail-code-card"><div><span>Autonomous usage</span><b>Node.js</b></div><pre id="detailAgentCode">const result = await agent.call("weather-ai", { body: { input: "hello" } });</pre></div>
           <div class="detail-info-card"><span>Built for reliable payment</span><ul><li><i>✓</i><div><strong>Direct settlement</strong><small>Every payment goes to the creator wallet.</small></div></li><li><i>✓</i><div><strong>Replay protected</strong><small>One payment proof invokes one API request.</small></div></li><li><i>✓</i><div><strong>Public metrics</strong><small>Usage and revenue are transparently reported.</small></div></li></ul></div>
         </div>
       </div>

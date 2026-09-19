@@ -1,4 +1,7 @@
-const serviceUiState = { network: null, category: '', searchTimer: null, currentService: null, logoDataUrl: '', logoHash: '' };
+const serviceUiState = {
+  network: null, category: '', searchTimer: null, currentService: null,
+  logoDataUrl: '', logoHash: '', openapiDocument: null, openapiHash: ''
+};
 
 function escapeServiceHtml(value) {
   const element = document.createElement('span');
@@ -33,10 +36,14 @@ function initServiceLaunchpad() {
   document.getElementById('btnChooseServiceLogo')?.addEventListener('click', () => document.getElementById('serviceLogoInput').click());
   document.getElementById('serviceLogoInput')?.addEventListener('change', event => handleServiceLogo(event.target.files?.[0]));
   document.getElementById('btnRemoveServiceLogo')?.addEventListener('click', clearServiceLogo);
+  document.getElementById('btnChooseServiceOpenApi')?.addEventListener('click', () => document.getElementById('serviceOpenApiInput').click());
+  document.getElementById('serviceOpenApiInput')?.addEventListener('change', event => handleServiceOpenApi(event.target.files?.[0]));
+  document.getElementById('btnRemoveServiceOpenApi')?.addEventListener('click', clearServiceOpenApi);
   document.getElementById('btnServiceBack')?.addEventListener('click', () => { history.pushState(null, '', '/'); switchView('marketplace'); });
   document.getElementById('btnCopyServiceUrl')?.addEventListener('click', event => copyServiceText(document.getElementById('serviceSuccessUrl').textContent, event.currentTarget));
   document.getElementById('btnCopyDetailEndpoint')?.addEventListener('click', event => copyServiceText(serviceUiState.currentService?.gatewayUrl || '', event.currentTarget));
   document.getElementById('btnCopyCurl')?.addEventListener('click', event => copyServiceText(document.getElementById('detailCurl').textContent, event.currentTarget));
+  document.getElementById('btnCopyAgentCode')?.addEventListener('click', event => copyServiceText(document.getElementById('detailAgentCode').textContent, event.currentTarget));
   document.getElementById('serviceProjectsTableBody')?.addEventListener('click', handleServiceManagement);
 
   document.getElementById('serviceSearch')?.addEventListener('input', () => {
@@ -132,6 +139,38 @@ function clearServiceLogo() {
   updateServicePreview();
 }
 
+async function handleServiceOpenApi(file) {
+  if (!file) return;
+  if (file.size > 256 * 1024) {
+    showAppNotice({ title: 'Schema is too large', message: 'Choose an OpenAPI JSON file no larger than 256 KB.', type: 'warning' });
+    return;
+  }
+  try {
+    const source = await file.text();
+    const spec = JSON.parse(source);
+    if (!spec || typeof spec !== 'object' || !/^3\.(0|1)\./.test(spec.openapi || '') || !spec.paths) {
+      throw new Error('OpenAPI 3.0 or 3.1 JSON document required');
+    }
+    const canonical = JSON.stringify(spec);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
+    serviceUiState.openapiHash = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    serviceUiState.openapiDocument = spec;
+    document.getElementById('serviceOpenApiName').textContent = file.name;
+    document.getElementById('btnRemoveServiceOpenApi').hidden = false;
+  } catch (error) {
+    showAppNotice({ title: 'Schema not accepted', message: error.message, type: 'error' });
+  }
+}
+
+function clearServiceOpenApi() {
+  serviceUiState.openapiDocument = null;
+  serviceUiState.openapiHash = '';
+  const input = document.getElementById('serviceOpenApiInput');
+  if (input) input.value = '';
+  document.getElementById('serviceOpenApiName').textContent = 'Add openapi.json';
+  document.getElementById('btnRemoveServiceOpenApi').hidden = true;
+}
+
 async function serviceSigningProvider() {
   if (state.currentWallet?.isRealWeb3 && window.ethereum) return window.ethereum;
   if (window.__privy && typeof window.__privy.getProvider === 'function') {
@@ -177,7 +216,8 @@ async function handlePublishService() {
     const creatorAddress = state.currentWallet.address;
     const creatorTimestamp = String(Date.now());
     const orderedPayload = {
-      name, description, category, videoUrl, logoHash: serviceUiState.logoHash, endpointUrl, allowedMethods, price, currency,
+      name, description, category, videoUrl, logoHash: serviceUiState.logoHash, openapiHash: serviceUiState.openapiHash,
+      endpointUrl, allowedMethods, price, currency,
       creatorAddress: creatorAddress.toLowerCase(), payoutAddress: creatorAddress.toLowerCase(),
       network: serviceUiState.network.id, chainId: serviceUiState.network.chainId, timestamp: creatorTimestamp
     };
@@ -186,7 +226,10 @@ async function handlePublishService() {
     button.querySelector('span').textContent = 'Launching your API...';
     const response = await fetch('/api/services', {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...orderedPayload, logoDataUrl: serviceUiState.logoDataUrl, creatorAddress, payoutAddress: creatorAddress, creatorTimestamp, creatorSignature })
+      body: JSON.stringify({
+        ...orderedPayload, logoDataUrl: serviceUiState.logoDataUrl, openapiDocument: serviceUiState.openapiDocument,
+        creatorAddress, payoutAddress: creatorAddress, creatorTimestamp, creatorSignature
+      })
     });
     const data = await response.json();
     if (!response.ok || !data.success) throw new Error(data.error || 'The service could not be launched');
@@ -260,9 +303,18 @@ async function loadServiceDetail(slug) {
     const videoLink = document.getElementById('detailVideoLink');
     videoLink.hidden = !service.videoUrl;
     if (service.videoUrl) videoLink.href = service.videoUrl;
+    const openapiLink = document.getElementById('detailOpenApiLink');
+    openapiLink.hidden = !service.openapiUrl;
+    if (service.openapiUrl) openapiLink.href = service.openapiUrl;
     const method = service.allowedMethods.includes('POST') ? 'POST' : service.allowedMethods[0];
-    const body = method === 'GET' ? '' : ` \\\n+  -H "Content-Type: application/json" \\\n+  -d '{"input":"hello"}'`;
+    const body = method === 'GET' ? '' : [
+      ' \\',
+      '  -H "Content-Type: application/json" \\',
+      '  -d \'{"input":"hello"}\''
+    ].join('\n');
     document.getElementById('detailCurl').textContent = `curl -i -X ${method} "${service.gatewayUrl}"${body}`;
+    document.getElementById('detailAgentCode').textContent =
+      `const { OlanasAgent } = require("./sdk");\n\nconst agent = new OlanasAgent({\n  signer,\n  allowedServices: ["${service.slug}"],\n  allowedTokens: ["${service.currency}"],\n  maxPricePerCall: { ${service.currency}: "${service.price}" },\n  dailyBudget: { ${service.currency}: "1.00" },\n  approvePayment: policy.approve\n});\n\nconst result = await agent.call("${service.slug}", {\n  method: "${method}",\n  body: { input: "hello" }\n});`;
   } catch (error) { showAppNotice({ title: 'Service unavailable', message: error.message, type: 'error' }); }
 }
 

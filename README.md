@@ -8,7 +8,7 @@ The launchpad exposes an x402 v2-shaped discovery and challenge envelope using t
 
 ## API launchpad
 
-Developers connect a wallet, paste a public API URL, choose one or more HTTP methods, set a per-request price, optionally upload a logo and add a video URL, and sign the listing. The platform publishes the API at `/x402/:slug`.
+Developers connect a wallet, paste a public API URL, choose one or more HTTP methods, set a per-request price, optionally upload a logo, OpenAPI JSON, and video URL, and sign the listing. The platform publishes the API at `/x402/:slug`.
 
 On a paid request:
 
@@ -27,11 +27,16 @@ USDG is the default stable payment token. Its canonical Robinhood Chain address 
 - `GET /api/services/:slug`: public listing and live analytics.
 - `GET /api/services/creator/:address`: services owned by a creator wallet.
 - `GET /api/services/:slug/logo`: durable uploaded logo.
+- `GET /api/services/:slug/openapi.json`: optional public schema rewritten to the paid gateway.
 - `GET /api/services/:slug/health`: check the upstream endpoint.
 - `PATCH /api/services/:slug`: wallet-signed update, pause, or resume.
 - `DELETE /api/services/:slug`: wallet-signed deletion.
 - `GET /discovery/resources`: x402 v2-shaped discovery metadata for all live APIs.
 - `GET|POST|PUT|PATCH|DELETE /x402/:slug/*`: paid API gateway, limited to the methods selected by the creator.
+- `POST /mcp`: stateless MCP tools for discovery, requirements, gateway calls, balances, and receipts.
+- `GET /llms.txt` and `GET /docs/:page.md`: AI-readable documentation.
+
+The guarded Node client in `sdk/index.js` accepts an injected ethers signer (or an explicit server-side key and RPC), service/token allowlists, per-call limits, daily budgets, and a payment approval callback. It does not generate, request, transmit, or persist wallet secrets. See `/docs/developers/agents` for usage.
 
 Creation and management signatures are bound to the exact listing/action payload and expire after five minutes. Endpoint validation rejects private, loopback, link-local, and otherwise unsafe destinations.
 

@@ -25,6 +25,7 @@ const app = require('../src/server/app');
 const { serviceCreationMessage, managementMessage } = require('../src/server/services/routes');
 const { serviceStore } = require('../src/server/services/store');
 const { isPrivateAddress } = require('../src/server/services/endpoint-security');
+const { OlanasAgent, safeSuffix } = require('../sdk');
 const payer = ethers.Wallet.createRandom();
 const creator = ethers.Wallet.createRandom();
 let server;
@@ -61,6 +62,21 @@ test('production: rejects malformed prices without floating point coercion', () 
   for (const price of ['NaN', 'Infinity', '1abc', '-1', '0', '1e5', '', '0.0000001']) assert.throws(() => parseAmount(price, 'USDC'));
   assert.equal(parseAmount('1.000001', 'USDC'), 1000001n);
   for (const token of ['__proto__', 'constructor', 'toString']) assert.throws(() => parseAmount('1', token));
+});
+test('production: agent paths reject absolute URLs and traversal', () => {
+  assert.equal(safeSuffix('/forecast?city=Delhi'), '/forecast?city=Delhi');
+  for (const value of ['https://evil.example', '//evil.example', '../admin', '/a/../admin']) assert.throws(() => safeSuffix(value));
+});
+test('production: agent payments fail closed on price and approval policy', async () => {
+  const fetchConfig = async () => ({
+    ok: true,
+    json: async () => ({ networks: [{ caip2: config.caip2, chainId: config.chainId, tokens: [config.supportedTokens.USDG] }] })
+  });
+  const requirement = { token: 'USDG', network: config.caip2, amount: '2000', payTo: creator.address, asset: config.supportedTokens.USDG.address };
+  const expensive = new OlanasAgent({ signer: {}, fetch: fetchConfig, allowedTokens: ['USDG'], maxPricePerCall: { USDG: '0.001' }, dailyBudget: { USDG: '1' }, autoApprove: true });
+  await assert.rejects(expensive.authorize('weather-ai', requirement), /maxPricePerCall/);
+  const unapproved = new OlanasAgent({ signer: {}, fetch: fetchConfig, allowedTokens: ['USDG'], maxPricePerCall: { USDG: '0.01' }, dailyBudget: { USDG: '1' } });
+  assert.equal(await unapproved.authorize('weather-ai', requirement), false);
 });
 test('production: simulated proofs remain disabled even when demo flag is set', () => {
   const child = spawnSync(process.execPath, ['-e', "const c=require('./src/server/config/chain').ROBINHOOD_CHAIN_CONFIG;if(c.demoMode)process.exit(1)"], { cwd: projectRoot, env: { ...process.env, NODE_ENV: 'production' } });
@@ -272,6 +288,12 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
       allowedMethods: ['POST'], price: '0.002', currency: 'USDC',
       creatorAddress: creator.address, payoutAddress: creator.address, creatorTimestamp: timestamp
     };
+    payload.openapiDocument = {
+      openapi: '3.1.0', info: { title: 'Weather AI', version: '1.0.0' },
+      servers: [{ url: payload.endpointUrl }],
+      paths: { '/forecast': { post: { requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { city: { type: 'string' } } } } } } } } }
+    };
+    payload.openapiHash = crypto.createHash('sha256').update(JSON.stringify(payload.openapiDocument)).digest('hex');
     payload.creatorSignature = await creator.signMessage(serviceCreationMessage(payload));
     const created = await fetch(base + '/api/services', {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload)
@@ -282,10 +304,15 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
     assert.equal(service.requests, 0);
     assert.equal(service.videoUrl, payload.videoUrl);
     assert.match(service.logoUrl, /\/api\/services\/weather-ai\/logo$/);
+    assert.match(service.openapiUrl, /\/api\/services\/weather-ai\/openapi\.json$/);
     const logoResponse = await fetch(service.logoUrl);
     assert.equal(logoResponse.status, 200);
     assert.deepEqual(Buffer.from(await logoResponse.arrayBuffer()), logoBytes);
     assert.ok(!JSON.stringify(service).includes(payload.endpointUrl));
+    const openapi = await fetch(service.openapiUrl).then(response => response.json());
+    assert.equal(openapi.servers[0].url, `${base}/x402/${service.slug}`);
+    assert.equal(openapi['x-olanas-payment'].currency, 'USDC');
+    assert.ok(!JSON.stringify(openapi).includes(payload.endpointUrl));
 
     const unpaid = await fetch(`${base}/x402/${service.slug}/forecast?city=Delhi`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ days: 3 })
@@ -297,6 +324,9 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
     assert.equal(challenge.x402Version, 2);
     const discovery = await fetch(base + '/discovery/resources').then(result => result.json());
     assert.equal(discovery.items.some(item => item.resource.endsWith('/x402/' + service.slug)), true);
+    const discovered = discovery.items.find(item => item.resource.endsWith('/x402/' + service.slug));
+    assert.equal(discovered.metadata.openapi, service.openapiUrl);
+    assert.equal(discovered.metadata.input.path, '/forecast');
 
     const proof = {
       scheme: 'sandbox', payer: payer.address, recipient: creator.address,
@@ -308,6 +338,8 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
       body: JSON.stringify({ days: 3 })
     });
     assert.equal(paid.status, 200, await paid.clone().text());
+    const settledReceipt = JSON.parse(Buffer.from(paid.headers.get('payment-response'), 'base64').toString('utf8'));
+    assert.equal((await serviceStore.getReceiptById(settledReceipt.receiptId)).receiptId, settledReceipt.receiptId);
     const response = await paid.json();
     assert.equal(response.method, 'POST');
     assert.equal(response.url, '/origin/forecast?city=Delhi');
@@ -367,6 +399,18 @@ test('production: unknown APIs, malformed JSON and legacy wallet APIs return JSO
   const malformed = await fetch(base + '/api/paywalls/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{bad' });
   assert.equal(malformed.status, 400); assert.ok((await malformed.json()).error);
   for (const endpoint of ['login-email', 'create-embedded-wallet']) assert.equal((await fetch(base + '/api/privy/' + endpoint, { method: 'POST' })).status, 410);
+});
+test('production: MCP endpoint completes a stateless protocol initialization', async () => {
+  const response = await fetch(base + '/mcp', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'regression-test', version: '1.0.0' } } })
+  });
+  assert.equal(response.status, 200, await response.clone().text());
+  const initialized = await response.json();
+  assert.equal(initialized.result.serverInfo.name, 'olanas-api-launchpad');
+  assert.ok(initialized.result.capabilities.tools);
+  assert.equal((await fetch(base + '/mcp')).status, 405);
 });
 test('production: network selector config advertises isolated mainnet and testnet targets', async () => {
   const response = await fetch(base + '/api/privy/config').then(r => r.json());

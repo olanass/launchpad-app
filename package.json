@@ -17,7 +17,7 @@
     "test:browser": "node --test --test-name-pattern=browser: tests/regression.test.js",
     "test:smoke": "node tests/smoke/verify-link.js",
     "build:assets": "node scripts/build-privy.js",
-    "build": "npm run build:assets && next build",
+    "build": "npm run build:assets && next build --webpack",
     "prestart": "npm run build"
   },
   "keywords": [
@@ -34,6 +34,7 @@
   "license": "MIT",
   "dependencies": {
     "@libsql/client": "^0.18.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@privy-io/js-sdk-core": "^0.76.0",
     "@privy-io/node": "^0.34.0",
     "@privy-io/react-auth": "^3.43.0",
@@ -45,7 +46,8 @@
     "next": "^16.3.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "ws": "^8.21.3"
+    "ws": "^8.21.3",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

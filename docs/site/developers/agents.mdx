@@ -1,0 +1,85 @@
+---
+title: "AI agents and MCP"
+description: "Discover paid APIs, inspect schemas, enforce spend policy, and call them without giving Olanas a private key."
+---
+
+## Machine-readable entry points
+
+| Resource | URL | Purpose |
+| --- | --- | --- |
+| MCP server | `/mcp` | Stateless Streamable HTTP tools for agents and MCP clients |
+| Discovery | `/discovery/resources` | x402 v2-shaped catalog of live APIs and payment requirements |
+| LLM context | `/llms.txt` | Combined plain-text documentation and raw Markdown links |
+| OpenAPI | `/api/services/:slug/openapi.json` | Optional creator-supplied schema rewritten to the paid gateway |
+| Raw docs | `/docs/:page.md` | Markdown source for an individual documentation page |
+
+The MCP server provides `search_apis`, `get_api_details`, `get_payment_requirements`, `check_wallet_balance`, `call_paid_api`, and `get_payment_receipt`.
+
+<Warning>
+  Olanas never asks an MCP client for a seed phrase or private key. `call_paid_api` returns the 402 challenge when no proof is supplied. The agent must approve and sign the Robinhood Chain transaction in its own wallet, then provide only the public transaction proof.
+</Warning>
+
+## Guarded Node client
+
+The repository includes `sdk/index.js`. Payments remain disabled until an injected signer, a per-call maximum, a daily budget, and an approval policy are configured.
+
+```js
+const { OlanasAgent } = require('./sdk');
+
+const client = new OlanasAgent({
+  baseUrl: 'https://olanas.xyz',
+  signer, // ethers signer owned by your agent runtime
+  allowedServices: ['weather-ai'],
+  allowedTokens: ['USDG'],
+  maxPricePerCall: { USDG: '0.01' },
+  dailyBudget: { USDG: '1.00' },
+  approvePayment: async payment => policyEngine.approve(payment)
+});
+
+const { response, receipt } = await client.call('weather-ai', {
+  path: '/forecast',
+  method: 'POST',
+  body: { city: 'Bengaluru' }
+});
+
+console.log(await response.json(), receipt);
+```
+
+If the upstream API returns a server error after payment, the SDK throws an error with `payment` and `retry()` fields. Call `await error.retry()` to reuse the same confirmed proof; do not create a second transfer.
+
+You may pass an explicit `privateKey` and `rpcUrl` instead of a signer for an isolated server-side runtime. Never place a key in browser code, prompts, MCP configuration, source control, or Olanas environment variables.
+
+## Agent payment sequence
+
+<Steps>
+  <Step title="Discover and inspect">
+    Search the catalog, read the public OpenAPI schema when available, and request canonical payment requirements.
+  </Step>
+  <Step title="Apply local policy">
+    Verify the service allowlist, Robinhood Chain ID, token contract, price ceiling, remaining daily budget, and user or policy approval.
+  </Step>
+  <Step title="Pay from the agent wallet">
+    Submit the native or ERC-20 transfer directly to the creator payout address and wait for a successful mined receipt.
+  </Step>
+  <Step title="Retry with public proof">
+    Base64-encode `{ scheme: 'onchain-tx', txHash, payer }` in `PAYMENT-SIGNATURE`. Save the returned `PAYMENT-RESPONSE` receipt.
+  </Step>
+</Steps>
+
+The current production scheme verifies a confirmed Robinhood Chain transaction. It uses x402 v2-shaped discovery and challenge envelopes, but it is not the standard x402 `exact` settlement scheme.
+
+## MCP client configuration
+
+Point any Streamable HTTP MCP client at:
+
+```json
+{
+  "mcpServers": {
+    "olanas": {
+      "url": "https://olanas.xyz/mcp"
+    }
+  }
+}
+```
+
+Keep wallet execution in the host agent. The MCP server is a catalog and payment-proof transport, not a custodian.

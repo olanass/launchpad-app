@@ -31,6 +31,8 @@ async function buildClient() {
 
     fs.rmSync(publicDir, { recursive: true, force: true });
     fs.cpSync(clientDir, publicDir, { recursive: true });
+    fs.copyFileSync(path.join(publicDir, 'generated', 'llms.txt'), path.join(publicDir, 'llms.txt'));
+    fs.cpSync(path.join(publicDir, 'generated', 'docs-markdown'), path.join(publicDir, 'docs'), { recursive: true });
 
     console.log('Privy bridge created at src/client/generated/privy-bridge.bundle.js');
     console.log('Vercel static assets copied to public/.');

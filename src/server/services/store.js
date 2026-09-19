@@ -27,6 +27,7 @@ function addAmount(left, right, currency) {
 
 function publicService(service, baseUrl) {
   const gatewayPath = `/x402/${service.slug}`;
+  const openapiPath = `/api/services/${encodeURIComponent(service.slug)}/openapi.json`;
   return {
     serviceId: service.serviceId, slug: service.slug, name: service.name, description: service.description,
     category: service.category, videoUrl: service.videoUrl || null,
@@ -38,6 +39,7 @@ function publicService(service, baseUrl) {
     successfulResponses: service.successfulResponses, failedResponses: service.failedResponses,
     lastRequestAt: service.lastRequestAt, lastSuccessAt: service.lastSuccessAt,
     createdAt: service.createdAt, updatedAt: service.updatedAt, gatewayPath,
+    openapiUrl: service.openapiDocument ? (baseUrl ? baseUrl.replace(/\/$/, '') : '') + openapiPath : null,
     gatewayUrl: baseUrl ? baseUrl.replace(/\/$/, '') + gatewayPath : gatewayPath
   };
 }
@@ -64,8 +66,13 @@ class ServiceStore {
         FOREIGN KEY(service_id) REFERENCES services(service_id) ON DELETE CASCADE
       )`);
       await client.execute(`CREATE TABLE IF NOT EXISTS durable_redemptions (
-        redemption_key TEXT PRIMARY KEY, receipt TEXT NOT NULL, created_at TEXT NOT NULL
+        redemption_key TEXT PRIMARY KEY, receipt_id TEXT, receipt TEXT NOT NULL, created_at TEXT NOT NULL
       )`);
+      const redemptionColumns = await client.execute('PRAGMA table_info(durable_redemptions)');
+      if (!redemptionColumns.rows.some(row => row.name === 'receipt_id')) {
+        await client.execute('ALTER TABLE durable_redemptions ADD COLUMN receipt_id TEXT');
+      }
+      await client.execute('CREATE INDEX IF NOT EXISTS durable_redemptions_receipt_idx ON durable_redemptions(receipt_id)');
       await client.execute(`CREATE TABLE IF NOT EXISTS service_management_signatures (
         signature TEXT PRIMARY KEY, service_id TEXT NOT NULL, action TEXT NOT NULL, created_at TEXT NOT NULL,
         FOREIGN KEY(service_id) REFERENCES services(service_id) ON DELETE CASCADE
@@ -101,6 +108,7 @@ class ServiceStore {
     const service = {
       serviceId, slug, name: input.name, description: input.description, category: input.category,
       videoUrl: input.videoUrl || '', logo, endpointUrl: input.endpointUrl,
+      openapiDocument: input.openapiDocument || null, openapiHash: input.openapiHash || '',
       allowedMethods: input.allowedMethods, price: input.price, currency: input.currency,
       network: chain.networkId, chainId: chain.chainId,
       creatorAddress: ethers.getAddress(input.creatorAddress.toLowerCase()), payoutAddress: ethers.getAddress(input.payoutAddress.toLowerCase()),
@@ -186,8 +194,8 @@ class ServiceStore {
       explorerLink: data.txHash ? chain.explorerUrl + '/tx/' + data.txHash : null, metadata
     };
     const inserted = await c.execute({
-      sql: 'INSERT OR IGNORE INTO durable_redemptions(redemption_key, receipt, created_at) VALUES (?, ?, ?)',
-      args: [data.redemptionKey, JSON.stringify(receipt), receipt.settledAt]
+      sql: 'INSERT OR IGNORE INTO durable_redemptions(redemption_key, receipt_id, receipt, created_at) VALUES (?, ?, ?, ?)',
+      args: [data.redemptionKey, receipt.receiptId, JSON.stringify(receipt), receipt.settledAt]
     });
     if (inserted.rowsAffected === 1) return receipt;
     const existing = await c.execute({ sql: 'SELECT receipt FROM durable_redemptions WHERE redemption_key = ?', args: [data.redemptionKey] });
@@ -196,6 +204,14 @@ class ServiceStore {
         previous.token === receipt.token && previous.amount === receipt.amount &&
         previous.metadata?.endpoint === receipt.metadata?.endpoint) return { ...previous, replayed: true };
     throw new Error('Payment has already been redeemed for another requirement');
+  }
+  async getReceiptById(receiptId) {
+    const c = await this.init();
+    const result = await c.execute({
+      sql: 'SELECT receipt FROM durable_redemptions WHERE receipt_id = ? LIMIT 1',
+      args: [receiptId]
+    });
+    return result.rows[0] ? JSON.parse(result.rows[0].receipt) : null;
   }
   async recordResult(serviceId, receipt, result) {
     const c = await this.init();

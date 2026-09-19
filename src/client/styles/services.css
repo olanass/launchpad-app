@@ -61,6 +61,13 @@ body[data-view="service-detail"] .cosmos-background { opacity: .08; filter: gray
 .service-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }.service-span-2 { grid-column: span 2; }.service-form-grid .form-group { margin: 0; }.service-form-grid label { color: #34423b; font-size: 11px; font-weight: 750; }.service-form-grid label > span { float: right; color: #9aa39e; font-size: 8px; letter-spacing: .08em; text-transform: uppercase; }.service-form-grid .form-control { min-height: 46px; border-color: #d4d9d5; border-radius: 10px; background: #fbfcfa; font-size: 13px; }.service-form-grid .form-control:focus { border-color: var(--launch-green); box-shadow: 0 0 0 3px rgba(22,131,95,.09); }.service-form-grid .form-group > small { display: block; margin-top: 7px; color: #8a958f; font-size: 9.5px; }
 .endpoint-input-wrap, .price-input-wrap { position: relative; }.endpoint-input-wrap > span, .price-input-wrap > span { position: absolute; z-index: 1; left: 14px; top: 50%; transform: translateY(-50%); color: var(--launch-green); font-weight: 800; }.endpoint-input-wrap input, .price-input-wrap input { padding-left: 38px; }.builder-divider { height: 1px; margin: 30px 0; background: #e0e4e1; }
 .service-logo-uploader { position: relative; display: flex; align-items: center; gap: 10px; }
+.service-spec-uploader { display:flex;align-items:center;gap:9px;padding:10px;border:1px dashed #bac5be;border-radius:12px;background:#f8faf8 }
+.service-spec-uploader>button:first-of-type { display:flex;flex:1;align-items:center;gap:11px;padding:0;border:0;background:transparent;color:var(--launch-ink);font:inherit;text-align:left;cursor:pointer }
+.service-spec-uploader>button:first-of-type>span { display:grid;width:38px;height:38px;place-items:center;border-radius:10px;background:#e4f5ec;color:var(--launch-green);font-weight:850 }
+.service-spec-uploader>button:first-of-type>div { display:flex;flex:1;flex-direction:column }
+.service-spec-uploader strong { font-size:10px }.service-spec-uploader small { margin-top:2px;color:#849087;font-size:8.5px }
+.service-spec-uploader b { padding:7px 9px;border-radius:7px;background:white;box-shadow:0 0 0 1px #d5ddd8;font-size:8px }
+.service-spec-uploader>button:last-child { border:0;background:transparent;color:#b14b4b;font:inherit;font-size:8px;font-weight:750;cursor:pointer }
 .service-logo-button { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 13px; width: 100%; padding: 11px 13px; border: 1px dashed #bfc8c2; border-radius: 12px; background: #f8faf7; color: #26332c; text-align: left; cursor: pointer; transition: border-color .16s, background .16s; }
 .service-logo-button:hover { border-color: var(--launch-green); background: #f1f8f4; }
 .service-logo-placeholder { display: grid; width: 48px; height: 48px; overflow: hidden; place-items: center; border-radius: 13px; background: #dff1e9; color: var(--launch-green); font-family: Georgia,serif; font-size: 20px; font-weight: 800; }
@@ -83,6 +90,9 @@ body[data-view="service-detail"] .cosmos-background { opacity: .08; filter: gray
 .detail-video-link:hover { background: #344039; transform: translateY(-1px); }
 .detail-video-link > span { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 9px; background: #f4b7df; color: #18201c; font-size: 10px; }
 .detail-video-link > div { display: flex; flex-direction: column; }.detail-video-link strong { font-size: 10px; }.detail-video-link small { color: #9eaaa3; font-size: 8px; }.detail-video-link > b { color: var(--launch-lime); }
+.detail-copy-agent { display:flex;justify-content:space-between;width:100%;margin-top:8px;padding:12px 14px;border:1px solid #445049;border-radius:10px;background:transparent;color:#d9e2dd;font:inherit;font-size:9px;font-weight:750;cursor:pointer }
+.detail-copy-agent:hover { background:#29332e }
+.detail-info-card { grid-column:1/-1 }
 
 .project-section-head{display:flex;align-items:end;justify-content:space-between;margin:28px 3px 10px}.project-section-head>div{display:flex;flex-direction:column}.project-section-head span{font-size:12px;font-weight:800}.project-section-head small{color:#8a958f;font-size:9px}.service-project-card{margin-bottom:28px}.status-live-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;background:#eaf8f0;color:#117755;font-size:8px;font-weight:850;text-transform:uppercase}.status-live-pill:before{content:'';width:5px;height:5px;border-radius:50%;background:#19a66f}
 
