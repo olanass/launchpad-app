@@ -9,6 +9,7 @@ const vm = require('vm');
 const projectRoot = path.resolve(__dirname, '..');
 const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'x402-regression-'));
 process.env.X402_DATA_DIR = dataDir;
+process.env.TURSO_DATABASE_URL = 'file::memory:';
 process.env.X402_DEMO_MODE = 'true';
 process.env.NODE_ENV = 'test';
 process.env.X402_TEST_ALLOW_PRIVATE_ENDPOINTS = 'true';
@@ -21,7 +22,8 @@ const { verifyPayment, claimMessage, EIP712_DOMAIN, EIP712_TYPES } = require('..
 const { settlePayment } = require('../src/server/facilitator/settler');
 const vault = require('../src/server/vault/storage');
 const app = require('../src/server/app');
-const { serviceCreationMessage } = require('../src/server/services/routes');
+const { serviceCreationMessage, managementMessage } = require('../src/server/services/routes');
+const { serviceStore } = require('../src/server/services/store');
 const { isPrivateAddress } = require('../src/server/services/endpoint-security');
 const payer = ethers.Wallet.createRandom();
 const creator = ethers.Wallet.createRandom();
@@ -35,6 +37,7 @@ test.before(async () => {
 test.after(async () => {
   server.closeAllConnections();
   await new Promise(resolve => server.close(resolve));
+  await serviceStore.close();
   const target = path.resolve(dataDir);
   assert.equal(path.dirname(target), path.resolve(os.tmpdir()));
   assert.ok(path.basename(target).startsWith('x402-regression-'));
@@ -209,7 +212,7 @@ test('paywall: signed creation, private metadata, download gating, replay preven
   const unpaid = await fetch(url);
   assert.equal(unpaid.status, 402);
   const challenge = JSON.parse(Buffer.from(unpaid.headers.get('payment-required'), 'base64'));
-  assert.equal(challenge.resource, new URL(url).pathname);
+  assert.equal(new URL(challenge.resource.url).pathname, new URL(url).pathname);
   const proof = { scheme: 'sandbox', payer: payer.address, recipient: creator.address, amount: '1.5', token: 'ETH', chainId: 4663, nonce: crypto.randomUUID() };
   const options = { headers: { 'PAYMENT-SIGNATURE': Buffer.from(JSON.stringify(proof)).toString('base64') } };
   const paid = await fetch(url, options);
@@ -243,10 +246,15 @@ test('paywall: multipart upload round trips binary bytes', async () => {
   assert.equal(download.status, 200); assert.deepEqual(Buffer.from(await download.arrayBuffer()), bytes);
 });
 test('services: signed launch, private metadata, paid proxy and analytics', async () => {
+  let flakyCalls = 0;
   const upstream = require('http').createServer((req, res) => {
     const chunks = [];
     req.on('data', chunk => chunks.push(chunk));
     req.on('end', () => {
+      if (req.url.includes('/flaky') && flakyCalls++ === 0) {
+        res.statusCode = 503;
+        return res.end(JSON.stringify({ error: 'temporary failure' }));
+      }
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify({ method: req.method, url: req.url, body: Buffer.concat(chunks).toString() }));
     });
@@ -286,6 +294,9 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
     const challenge = JSON.parse(Buffer.from(unpaid.headers.get('payment-required'), 'base64'));
     assert.equal(challenge.price, '0.002');
     assert.equal(challenge.network, config.networkId);
+    assert.equal(challenge.x402Version, 2);
+    const discovery = await fetch(base + '/discovery/resources').then(result => result.json());
+    assert.equal(discovery.items.some(item => item.resource.endsWith('/x402/' + service.slug)), true);
 
     const proof = {
       scheme: 'sandbox', payer: payer.address, recipient: creator.address,
@@ -307,16 +318,41 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
       headers: { 'content-type': 'application/json', 'payment-signature': Buffer.from(JSON.stringify(proof)).toString('base64') },
       body: JSON.stringify({ days: 7 })
     });
-    assert.equal(replay.status, 402);
+    assert.equal(replay.status, 409);
+
+    const retryProof = {
+      scheme: 'sandbox', payer: payer.address, recipient: creator.address,
+      amount: '0.002', token: 'USDC', chainId: config.chainId, nonce: crypto.randomUUID()
+    };
+    const retryHeaders = { 'payment-signature': Buffer.from(JSON.stringify(retryProof)).toString('base64') };
+    assert.equal((await fetch(`${base}/x402/${service.slug}/flaky`, { method: 'POST', headers: retryHeaders })).status, 503);
+    assert.equal((await fetch(`${base}/x402/${service.slug}/flaky`, { method: 'POST', headers: retryHeaders })).status, 200);
 
     const detail = await fetch(base + '/api/services/' + service.slug).then(result => result.json());
-    assert.equal(detail.service.requests, 1);
-    assert.equal(detail.service.revenue, '0.002');
-    assert.equal(detail.service.successfulResponses, 1);
+    assert.equal(detail.service.requests, 2);
+    assert.equal(detail.service.revenue, '0.004');
+    assert.equal(detail.service.successfulResponses, 2);
+    assert.equal(detail.service.failedResponses, 1);
     assert.ok(!JSON.stringify(detail).includes(payload.endpointUrl));
     const creatorList = await fetch(base + '/api/services/creator/' + creator.address).then(result => result.json());
     assert.equal(creatorList.services.some(item => item.serviceId === service.serviceId), true);
     assert.ok(!JSON.stringify(creatorList).includes('creatorSignature'));
+
+    const changes = { status: 'paused' };
+    const creatorTimestamp = String(Date.now());
+    const creatorSignature = await creator.signMessage(managementMessage('update', service.slug, changes, creatorTimestamp));
+    const paused = await fetch(base + '/api/services/' + service.slug, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ changes, creatorTimestamp, creatorSignature })
+    });
+    assert.equal(paused.status, 200, await paused.clone().text());
+    assert.equal((await paused.json()).service.status, 'paused');
+    const replayedManagement = await fetch(base + '/api/services/' + service.slug, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ changes, creatorTimestamp, creatorSignature })
+    });
+    assert.equal(replayedManagement.status, 409);
+    assert.equal((await fetch(`${base}/x402/${service.slug}`, { method: 'POST' })).status, 503);
   } finally {
     upstream.closeAllConnections();
     await new Promise(resolve => upstream.close(resolve));
