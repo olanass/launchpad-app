@@ -1,7 +1,7 @@
 {
-  "name": "x402-robinhood",
+  "name": "x402-launchpad",
   "version": "1.0.0",
-  "description": "x402 Micropayment Facilitator and Agent Protocol for Robinhood Chain (Arbitrum Orbit L2)",
+  "description": "x402 Launchpad for Robinhood Chain",
   "main": "src/server/index.js",
   "scripts": {
     "start": "node src/server/index.js",
