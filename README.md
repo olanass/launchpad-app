@@ -8,6 +8,25 @@ The launchpad exposes an x402 v2-shaped discovery and challenge envelope using t
 
 ## API launchpad
 
+### Local Robinhood Payments MCP
+
+The separate [Payments MCP companion](payments-mcp/README.md) lets an MCP coding
+client discover launchpad APIs, queue user-approved payments, inspect balances,
+and retrieve results. Its browser wallet UI supports funding details and sending
+unused funds out on Robinhood. Native Olanas wallet mode generates an encrypted
+local keystore and signs autonomous payments locally under owner-enabled session
+budgets. Install and configure it for Codex in one command:
+
+```powershell
+npx --yes github:olanass/launchpad-app --client codex --auto-config
+```
+
+From a cloned repository, use `npm run payments:install`. The installer creates the wallet
+and configures Codex without API keys or seed phrases. Optional browser-wallet mode starts
+with `npm run payments:wallet`. Run `npm run test:payments` for both modes.
+No hosted custody service or fiat onramp is included.
+It runs locally, independently of the website deployment.
+
 Developers connect a wallet, paste a public API URL, choose one or more HTTP methods, set a per-request price, optionally upload a logo, OpenAPI JSON, and video URL, and sign the listing. The platform publishes the API at `/x402/:slug`.
 
 On a paid request:

@@ -1,0 +1,38 @@
+name: Payments MCP
+
+on:
+  push:
+    paths:
+      - "payments-mcp/**"
+      - "tests/payments-*.test.js"
+      - "tests/fixtures/payments-*"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/payments-mcp.yml"
+  pull_request:
+    paths:
+      - "payments-mcp/**"
+      - "tests/payments-*.test.js"
+      - "tests/fixtures/payments-*"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/payments-mcp.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:payments
+      - name: Verify publishable package contents
+        working-directory: payments-mcp
+        run: npm pack --dry-run

@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "description": "x402 Launchpad for Robinhood Chain",
   "main": "server.js",
+  "bin": {
+    "olanas-payments-mcp": "payments-mcp/cli.js"
+  },
   "scripts": {
+    "payments:setup": "node payments-mcp/setup.js",
+    "payments:mcp": "node payments-mcp/server.js",
+    "payments:wallet": "node payments-mcp/server.js --wallet-only",
+    "test:payments": "npm run payments:bundle && node --test tests/payments-mcp.test.js tests/payments-autonomous.test.js tests/payments-setup.test.js tests/payments-installer.test.js",
     "start": "node server.js",
     "start:testnet": "npm run build && node scripts/start-network.js testnet",
     "start:networks": "npm run build && node scripts/start-networks.js",
@@ -19,7 +26,13 @@
     "test:deployment": "node tests/smoke/verify-deployment.js",
     "build:assets": "node scripts/build-privy.js",
     "build": "npm run build:assets && next build --webpack",
-    "prestart": "npm run build"
+    "prestart": "npm run build",
+    "prepare": "npm run payments:bundle",
+    "payments:olanas": "node --env-file=.local/payments.env payments-mcp/server.js --wallet-only",
+    "payments:bundle": "node payments-mcp/build-package.js",
+    "payments:install": "npm run payments:bundle && node payments-mcp/cli.js install",
+    "payments:status": "node payments-mcp/cli.js status",
+    "payments:uninstall": "node payments-mcp/cli.js uninstall"
   },
   "keywords": [
     "x402",
