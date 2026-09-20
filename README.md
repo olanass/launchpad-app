@@ -18,7 +18,7 @@ On a paid request:
 4. The server verifies the mined transfer, reserves the receipt, and proxies the request to the developer endpoint.
 5. Only a successful upstream response counts as a paid request and revenue. A failed upstream response releases that payment proof for a retry.
 
-USDG is the default stable payment token. Its canonical Robinhood Chain address is `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`, with 6 decimals. Other currencies are available only when their verified contract addresses are explicitly configured.
+USDG is the default stable payment token. Its canonical Robinhood Chain address is `0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`, with 6 decimals. OLANAS is also supported as a canonical mainnet payment token at `0x9400eB66B1320050A68F25A624985a674F033902`, with 18 decimals. Other currencies are available only when their verified contract addresses are explicitly configured.
 
 ### Launchpad API
 

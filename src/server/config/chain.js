@@ -24,7 +24,9 @@ const NETWORKS = {
 const safeAddress = address => ethers.getAddress(address.toLowerCase());
 const CANONICAL_MAINNET_TOKENS = {
   // Paxos Global Dollar on Robinhood Chain. Verified on-chain: symbol USDG, 6 decimals.
-  USDG: { symbol: 'USDG', name: 'Global Dollar', decimals: 6, address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168' }
+  USDG: { symbol: 'USDG', name: 'Global Dollar', decimals: 6, address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168' },
+  // Official Olanas ERC-20 on Robinhood Chain mainnet.
+  OLANAS: { symbol: 'OLANAS', name: 'Olanas', decimals: 18, address: '0x9400eB66B1320050A68F25A624985a674F033902' }
 };
 
 function getRobinhoodChainConfig(requestedNetwork) {
@@ -33,7 +35,10 @@ function getRobinhoodChainConfig(requestedNetwork) {
   const network = NETWORKS[networkKey];
   const demoMode = process.env.X402_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
   const tokens = { ETH: { symbol: 'ETH', name: 'Ether', decimals: 18, address: null } };
-  if (networkKey === 'mainnet') tokens.USDG = { ...CANONICAL_MAINNET_TOKENS.USDG };
+  if (networkKey === 'mainnet') {
+    tokens.USDG = { ...CANONICAL_MAINNET_TOKENS.USDG };
+    tokens.OLANAS = { ...CANONICAL_MAINNET_TOKENS.OLANAS };
+  }
   for (const [symbol, decimals] of [['USDC', 6], ['WETH', 18], ['X402PAY', 18], ['USDG', 6]]) {
     const scopedKey = `ROBINHOOD_${networkKey.toUpperCase()}_${symbol}_CONTRACT_ADDRESS`;
     const legacyAddress = networkKey === 'mainnet' ? process.env[symbol + '_CONTRACT_ADDRESS'] : undefined;

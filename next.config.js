@@ -7,9 +7,20 @@ const nextConfig = {
     '/*': ['src/client/index.html']
   },
   async rewrites() {
-    return { beforeFiles: ['x402', 'facilitator', 'discovery', 'agent-runner', 'mcp'].map(prefix => ({
+    const apiRewrites = ['x402', 'facilitator', 'discovery', 'agent-runner', 'mcp'].map(prefix => ({
       source: `/${prefix}/:path*`, destination: `/api/_gateway/${prefix}/:path*`
-    })) };
+    }));
+    const clientAssetRewrites = ['assets', 'generated', 'integrations', 'scripts', 'styles'].map(prefix => ({
+      source: `/${prefix}/:path*`, destination: `/api/_client/${prefix}/:path*`
+    }));
+    return {
+      beforeFiles: [
+        ...apiRewrites,
+        ...clientAssetRewrites,
+        { source: '/og.png', destination: '/api/_client/og.png' },
+        { source: '/logo.jpg', destination: '/api/_client/assets/logo.jpg' }
+      ]
+    };
   },
   turbopack: { root: __dirname }
 };

@@ -42,7 +42,7 @@ class OlanasAgent {
     this.maxPricePerCall = options.maxPricePerCall ?? null;
     this.dailyBudget = options.dailyBudget ?? null;
     this.allowedServices = options.allowedServices ? new Set(options.allowedServices) : null;
-    this.allowedTokens = new Set(options.allowedTokens || ['ETH', 'USDG']);
+    this.allowedTokens = new Set(options.allowedTokens || ['ETH', 'USDG', 'OLANAS']);
     this.autoApprove = options.autoApprove === true;
     this.approvePayment = options.approvePayment || null;
     this.spent = new Map();

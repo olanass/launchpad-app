@@ -25,6 +25,7 @@ const app = require('../src/server/app');
 const { serviceCreationMessage, managementMessage } = require('../src/server/services/routes');
 const { serviceStore } = require('../src/server/services/store');
 const { isPrivateAddress } = require('../src/server/services/endpoint-security');
+const { prepareNextRequest } = require('../src/server/next-request');
 const { OlanasAgent, safeSuffix } = require('../sdk');
 const payer = ethers.Wallet.createRandom();
 const creator = ethers.Wallet.createRandom();
@@ -110,7 +111,17 @@ test('production: testnet configuration is isolated from mainnet data and token 
   assert.equal(testnet.explorerUrl, 'https://explorer.testnet.chain.robinhood.com');
   assert.equal(testnet.testnet, true);
   assert.equal(testnet.supportedTokens.USDC, undefined);
+  assert.equal(testnet.supportedTokens.OLANAS, undefined);
   assert.equal(path.basename(dataDir), 'uploads-testnet');
+});
+test('production: OLANAS is a canonical 18-decimal mainnet payment token', () => {
+  assert.deepEqual(config.supportedTokens.OLANAS, {
+    symbol: 'OLANAS',
+    name: 'Olanas',
+    decimals: 18,
+    address: '0x9400eB66B1320050A68F25A624985a674F033902'
+  });
+  assert.equal(parseAmount('1.000000000000000001', 'OLANAS'), 1000000000000000001n);
 });
 test('production: real mode rejects sandbox and unfunded signed vouchers', async () => {
   config.demoMode = false;
@@ -162,6 +173,17 @@ test('production: token verification matches contract, transfer sender, recipien
   log = { ...log, address: creator.address };
   assert.equal((await verifyPayment(f.proof, req, f)).valid, false);
   log = { ...iface.encodeEventLog('Transfer', [payer.address, creator.address, 1n]), address: config.supportedTokens.USDC.address };
+  assert.equal((await verifyPayment(f.proof, req, f)).valid, false);
+});
+test('production: OLANAS verification accepts only transfers from its canonical contract', async () => {
+  const req = { ...requirement, price: '1.5', token: 'OLANAS' };
+  const f = await chainFixture();
+  const iface = new ethers.Interface(['event Transfer(address indexed from, address indexed to, uint256 value)']);
+  const event = iface.encodeEventLog('Transfer', [payer.address, creator.address, ethers.parseUnits('1.5', 18)]);
+  let log = { ...event, address: config.supportedTokens.OLANAS.address };
+  f.provider.getTransactionReceipt = async () => ({ hash: f.proof.txHash, status: 1, blockNumber: 10, logs: [log] });
+  assert.equal((await verifyPayment(f.proof, req, f)).valid, true);
+  log = { ...log, address: config.supportedTokens.USDG.address };
   assert.equal((await verifyPayment(f.proof, req, f)).valid, false);
 });
 test('production: claim cannot be reused for another resource', async () => {
@@ -421,6 +443,21 @@ test('production: network selector config advertises isolated mainnet and testne
   ]);
   assert.ok(response.networks.every(network => network.appUrl));
   assert.match(await fetch(base).then(r => r.text()), /id="networkSelector"/);
+});
+test('production: Next client asset gateway serves JavaScript instead of the HTML shell', async () => {
+  const response = await fetch(base + '/api/_client/scripts/app.js');
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') || '', /javascript/);
+  assert.doesNotMatch(await response.text(), /^\s*</);
+});
+test('production: Next rewrites retain public URLs while reaching the client asset gateway', () => {
+  const assetRequest = { url: '/scripts/cosmos-background.js?v=1', query: { path: ['_client', 'scripts', 'cosmos-background.js'] } };
+  prepareNextRequest(assetRequest);
+  assert.equal(assetRequest.url, '/api/_client/scripts/cosmos-background.js?v=1');
+
+  const gatewayRequest = { url: '/api/_gateway/x402/weather?city=Delhi', query: { path: ['_gateway', 'x402', 'weather'] } };
+  prepareNextRequest(gatewayRequest);
+  assert.equal(gatewayRequest.url, '/x402/weather?city=Delhi');
 });
 test('production: agent runner cannot request arbitrary URLs', async () => {
   const result = await fetch(base + '/agent-runner/execute', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: 'http://127.0.0.1/private' }) });

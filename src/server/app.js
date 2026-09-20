@@ -52,6 +52,10 @@ const staticOptions = {
   etag: false,
   setHeaders: response => response.setHeader('Cache-Control', 'no-store')
 };
+// Next rewrites browser asset requests here when the client is rendered by the
+// App Router. Keep this route available even when the public client fallback is
+// disabled (as it is for the custom Next server and the serverless API entry).
+app.use('/api/_client', express.static(CLIENT_DIR, staticOptions));
 if (serveClient) {
   app.use(express.static(CLIENT_DIR, staticOptions));
   app.use('/p', express.static(CLIENT_DIR, staticOptions));

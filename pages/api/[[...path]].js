@@ -1,4 +1,5 @@
 import { createApp } from '../../src/server/app';
+import { prepareNextRequest } from '../../src/server/next-request';
 let backend;
 
 export const config = { api: { bodyParser: false, externalResolver: true, responseLimit: false } };
@@ -8,7 +9,7 @@ export default function handler(req, res) {
     backend = createApp({ serveClient: false });
   }
   // Rewrites bring non-/api routes through this same serverless entry point.
-  req.url = req.url.replace(/^\/api\/_gateway(?=\/|\?|$)/, '');
+  prepareNextRequest(req);
   return new Promise((resolve, reject) => {
     res.once('finish', resolve);
     res.once('close', resolve);
