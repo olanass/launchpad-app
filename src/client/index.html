@@ -45,6 +45,7 @@
         </div>
         <button class="nav-btn active" id="tabNavLaunch" data-view="service-launch">Launch API</button>
         <button class="nav-btn" id="tabNavExplore" data-view="marketplace">Explore</button>
+        <button class="nav-btn" id="tabNavPayments" data-view="payments">Pay &amp; run</button>
         <button class="nav-btn" id="tabNavCreate" data-view="create">Sell files</button>
         <button class="nav-btn" id="tabNavMyLinks" data-view="mylinks">My projects</button>
         <button class="nav-btn" id="tabNavDocs" data-view="docs">Docs</button>
@@ -247,6 +248,122 @@
       </div>
     </section>
 
+    <section id="view-payments" class="app-view">
+      <div class="payments-shell">
+        <div class="payments-hero">
+          <div>
+            <span class="payments-kicker">BROWSER x402 CONSOLE</span>
+            <h1>Choose an API.<br><em>Pay, run, done.</em></h1>
+          </div>
+          <div class="payments-hero-copy">
+            <p>Call a live Olanas API directly from the website. You see the exact token, amount, and recipient before your wallet opens.</p>
+            <div class="payments-safety"><i></i><span>Your wallet signs the transfer. Olanas never receives your private key.</span></div>
+          </div>
+        </div>
+
+        <section class="agent-wallet-guide" id="agent-wallet-guide" aria-labelledby="agentWalletGuideTitle">
+          <div class="agent-guide-heading">
+            <div><span class="payments-kicker">PREFER TO USE YOUR AI AGENT?</span><h2 id="agentWalletGuideTitle">Install. Set limits. Ask.</h2><p>Use Codex or Claude to discover an API, pay from your local Olanas wallet, and return the result in chat.</p></div>
+            <button type="button" id="btnShareAgentGuide">Copy guide link</button>
+          </div>
+          <p class="agent-guide-release">Release preview: the updated wallet package and durable-order backend must be published together before this workflow is ready for mainnet use.</p>
+          <ol class="agent-guide-steps">
+            <li><b>01</b><strong>Install the local wallet</strong><span>Connect Olanas Payments MCP to your desktop AI client.</span></li>
+            <li><b>02</b><strong>Fund &amp; set limits</strong><span>Enable a bounded session in your local wallet UI.</span></li>
+            <li><b>03</b><strong>Ask for an API</strong><span>The agent pays automatically only within your policy.</span></li>
+            <li><b>04</b><strong>Get the result</strong><span>Read the response in chat and track the original order.</span></li>
+          </ol>
+          <details class="agent-guide-instructions" id="agentGuideInstructions">
+            <summary>Setup instructions for Codex and Claude</summary>
+            <div class="agent-guide-columns">
+              <div>
+                <h3>1. Install on your computer</h3>
+                <p>You need Node.js 22 or newer and Git. Run this in your terminal, not in agent chat. Install the selected desktop app or CLI first.</p>
+                <label for="agentGuideClient">Your AI client</label>
+                <select id="agentGuideClient"><option value="codex">Codex (local client / CLI)</option><option value="claude">Claude Desktop</option><option value="claude-code">Claude Code</option></select>
+                <pre><code id="agentGuideInstall">npx --yes github:olanass/web#olanas-payments-mcp install --client codex --auto-config --network mainnet --launchpad https://olanas.xyz</code></pre>
+                <button type="button" id="btnCopyAgentInstall">Copy install command</button>
+                <p id="agentGuideClientHelp">Have the Codex CLI available for automatic registration. If it is not found, the installer prints a manual MCP configuration.</p>
+                <p>The installer creates or reuses its own encrypted local wallet. It does not import your existing browser wallet, fund the account, or enable spending. Protect the local configuration and owner-password file.</p>
+                <h3>2. Open, fund, authorize</h3>
+                <p>Restart your AI client and ask: <code>Use olanas-payments to show my wallet.</code> Open the complete private wallet link it returns, including its #token. Do not share that link.</p>
+                <p>Use a dedicated wallet and verify the displayed <strong>mainnet</strong> network before funding it with the required payment token and ETH for gas. Enter the owner password only in the local wallet UI.</p>
+                <p>Choose a budget, duration, and Standard or Fast fees. Review the per-call and gas caps, optionally restrict services and recipients, then enable the session. Fast fees never change the API price and do not guarantee faster confirmation.</p>
+              </div>
+              <div>
+                <h3>3. Ask your agent</h3>
+                <p>This is an example request, not a promise that the service is available. Review it before sending. Each new purchase needs its own request ID; retries must keep the original.</p>
+                <pre><code id="agentGuidePrompt">Use olanas-payments to find Startup Pitch Scorer. Inspect its current input requirements and price. If it is available and within my enabled wallet policy, call it once using POST with {"name":"Olanas","pitch":"A marketplace where AI agents discover and pay APIs using crypto."}. Choose a unique requestId for this purchase and reuse it on retries. Check the same order until its saved result is available. If owner action is needed or delivery is uncertain, stop and tell me. Do not create a replacement payment.</code></pre>
+                <button type="button" id="btnCopyAgentPrompt">Copy example prompt</button>
+                <h3>4. Follow the original order</h3>
+                <p>The agent uses <code>request_paid_api</code> and reads the result with <code>get_payment_status</code>. The wallet shows authorization, payment confirmation, and saved response separately. Confirmed payment does not guarantee a successful API response.</p>
+                <p>With an active local signing session, eligible payments need no per-payment wallet popup. Your AI client may still ask permission to use tools. Browser-wallet mode remains manual. Restarting the companion disables autonomous spending until you authorize a session again.</p>
+                <details class="agent-guide-troubleshooting"><summary>If something needs attention</summary><ul><li><strong>Tools missing:</strong> restart the desktop client; check its MCP settings and the installer output. This is a local stdio integration, not a generic web-chat connector.</li><li><strong>Wallet link does not open:</strong> ask for a fresh complete link. Do not start a second companion on the same port.</li><li><strong>Insufficient funds or expired session:</strong> inspect the local wallet. Ask the agent to retry the same request ID only after resolving it.</li><li><strong>Rejected or uncertain delivery:</strong> do not pay again. Review the original order and use owner recovery only when appropriate.</li><li><strong>Order API unavailable:</strong> stop; the website and installed companion may be on different releases.</li></ul></details>
+              </div>
+            </div>
+            <p class="agent-guide-safety">Never paste a private key, seed phrase, or owner password into chat or this website. Installation and enabling spending are separate actions. Limits are enforced by the local companion, not by an on-chain spending contract.</p>
+            <div class="agent-guide-resources"><a href="/docs/developers/agents">Full agent documentation</a><a href="https://developers.openai.com/codex/mcp" target="_blank" rel="noopener noreferrer">Codex MCP setup</a><a href="https://code.claude.com/docs/en/mcp" target="_blank" rel="noopener noreferrer">Claude Code MCP setup</a><a href="https://modelcontextprotocol.io/docs/develop/connect-local-servers" target="_blank" rel="noopener noreferrer">Claude Desktop setup</a></div>
+          </details>
+          <p id="agentGuideFeedback" class="agent-guide-feedback" role="status" aria-live="polite"></p>
+        </section>
+
+        <div class="payments-layout">
+          <form class="payment-runner" id="paymentRunner">
+            <div class="payment-panel-heading">
+              <div><span>01</span><div><strong>Build request</strong><small>Select a service and provide its input.</small></div></div>
+              <b id="paymentRunnerNetwork">Robinhood Chain</b>
+            </div>
+
+            <label class="payment-field payment-field-wide" for="paymentService">
+              <span>API service</span>
+              <select id="paymentService" required><option value="">Loading live APIs...</option></select>
+            </label>
+            <div class="payment-form-row">
+              <label class="payment-field" for="paymentMethod"><span>Method</span><select id="paymentMethod" required><option>POST</option></select></label>
+              <label class="payment-field" for="paymentPath"><span>Optional path</span><input id="paymentPath" placeholder="v1/query" autocomplete="off"></label>
+            </div>
+            <label class="payment-field payment-field-wide" for="paymentBody">
+              <span>JSON request body</span>
+              <textarea id="paymentBody" rows="9" spellcheck="false" placeholder='{"input":"hello"}'>{"input":"hello"}</textarea>
+              <small>GET requests ignore the body. Additional paths must be relative and cannot contain traversal.</small>
+            </label>
+
+            <div class="payment-quote" id="paymentQuote" aria-live="polite">
+              <div><span>Price</span><strong id="paymentQuotePrice">Select an API</strong></div>
+              <div><span>Settlement</span><strong id="paymentQuoteToken">--</strong></div>
+              <div><span>Recipient</span><code id="paymentQuoteRecipient">--</code></div>
+            </div>
+
+            <button class="payment-run-button" id="btnRunPayment" type="submit"><span>Connect wallet &amp; review</span><b>-&gt;</b></button>
+            <p class="payment-consent">Nothing is sent until the wallet displays the transaction and you approve it.</p>
+          </form>
+
+          <aside class="payment-activity">
+            <div class="payment-panel-heading">
+              <div><span>02</span><div><strong>Live result</strong><small>Payment and API response status.</small></div></div>
+              <b id="paymentStatusBadge" data-state="idle">Ready</b>
+            </div>
+            <ol class="payment-steps" id="paymentSteps">
+              <li data-step="quote"><i>1</i><div><strong>Request quote</strong><small>Read the endpoint's payment requirements.</small></div></li>
+              <li data-step="approve"><i>2</i><div><strong>Approve in wallet</strong><small>Confirm the exact on-chain transfer.</small></div></li>
+              <li data-step="verify"><i>3</i><div><strong>Verify and run</strong><small>Reuse the payment proof and return the API result.</small></div></li>
+            </ol>
+            <div class="payment-result" id="paymentResult" aria-live="polite">
+              <span>Response</span>
+              <pre id="paymentResultBody">Your paid API response will appear here.</pre>
+              <div class="payment-result-meta" id="paymentResultMeta"></div>
+            </div>
+            <button type="button" class="payment-retry" id="btnRetryPayment" hidden>Retry verification with the same payment</button>
+          </aside>
+        </div>
+
+        <section class="payment-history-section">
+          <div class="payment-history-head"><div><span>RECENT ACTIVITY</span><h2>Payments from this browser</h2></div><button type="button" id="btnClearPaymentHistory">Clear history</button></div>
+          <div class="payment-history" id="paymentHistory"><p>No paid API calls from this browser yet.</p></div>
+        </section>
+      </div>
+    </section>
+
     <section id="view-service-detail" class="app-view">
       <div class="service-detail-shell">
         <button type="button" class="detail-back" id="btnServiceBack">← Explore APIs</button>
@@ -264,6 +381,7 @@
             <a class="detail-video-link" id="detailOpenApiLink" href="#" target="_blank" rel="noopener noreferrer" hidden><span>◎</span><div><strong>OpenAPI schema</strong><small>Machine-readable API contract</small></div><b>↗</b></a>
             <button type="button" class="detail-copy-main" id="btnCopyCurl">Copy request example <span>↗</span></button>
             <button type="button" class="detail-copy-agent" id="btnCopyAgentCode">Copy agent SDK example <span>↗</span></button>
+            <button type="button" class="detail-run-api" id="btnRunService">Pay &amp; run in browser <span>&rarr;</span></button>
             <small>First call returns a standard HTTP 402 payment challenge.</small>
           </aside>
         </div>
@@ -734,6 +852,9 @@ curl -i -X GET "http://localhost:4020/api/paywalls/PAY_ID/download" \
   <script src="/scripts/gas.js?v=20260918-server-verification"></script>
   <script src="/scripts/creator.js?v=20260918-server-verification"></script>
   <script src="/scripts/services.js?v=20260918-launchpad"></script>
+  <script src="/scripts/payments.js?v=20260920-browser-console"></script>
+  <script src="/generated/orders-wallet.bundle.js"></script>
+  <script src="/scripts/orders.js"></script>
   <script src="/scripts/checkout.js?v=20260918-server-verification"></script>
   <script src="/scripts/dashboard.js?v=20260918-server-verification"></script>
   <script src="/generated/docs-content.js?v=20260919-docs"></script>

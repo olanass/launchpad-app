@@ -444,6 +444,15 @@ test('production: network selector config advertises isolated mainnet and testne
   assert.ok(response.networks.every(network => network.appUrl));
   assert.match(await fetch(base).then(r => r.text()), /id="networkSelector"/);
 });
+test('production: hosted payment console shell includes its browser assets', async () => {
+  const html = fs.readFileSync(path.join(projectRoot, 'src', 'client', 'index.html'), 'utf8');
+  assert.match(html, /id="view-payments"/);
+  assert.match(html, /data-view="payments"/);
+  assert.match(html, /scripts\/payments\.js/);
+  const script = await fetch(base + '/api/_client/scripts/payments.js');
+  assert.equal(script.status, 200);
+  assert.match(script.headers.get('content-type') || '', /javascript/);
+});
 test('production: Next client asset gateway serves JavaScript instead of the HTML shell', async () => {
   const response = await fetch(base + '/api/_client/scripts/app.js');
   assert.equal(response.status, 200);
@@ -480,12 +489,33 @@ function browserFixture(provider, fetchImpl) {
     fetch: fetchImpl, crypto: crypto.webcrypto, TextEncoder, FormData, Blob, URL, setTimeout, clearTimeout,
     btoa: value => Buffer.from(value).toString('base64') };
   const context = vm.createContext(sandbox);
-  for (const script of ['app', 'navigation', 'network', 'wallet', 'gas', 'creator', 'checkout', 'dashboard']) {
+  for (const script of ['app', 'navigation', 'network', 'wallet', 'gas', 'creator', 'payments', 'checkout', 'dashboard']) {
     const source = fs.readFileSync(path.join(projectRoot, 'src', 'client', 'scripts', `${script}.js`), 'utf8');
     vm.runInContext(source, context, { filename: `${script}.js` });
   }
   return { context, elements, document, saved };
 }
+test('browser: payment console validates the exact quote before constructing a transfer', () => {
+  const browser = browserFixture(null, async () => { throw new Error('Unexpected request'); });
+  const recipient = '0x1111111111111111111111111111111111111111';
+  const tokenAddress = '0x2222222222222222222222222222222222222222';
+  const payer = '0x3333333333333333333333333333333333333333';
+  const network = { caip2: 'eip155:4663', chainId: 4663, tokens: [{ symbol: 'USDG', decimals: 6, address: tokenAddress }] };
+  const service = { currency: 'USDG', price: '1.25', payoutAddress: recipient };
+  const challenge = { accepts: [{ scheme: 'onchain-tx', network: network.caip2, amount: '1250000', asset: tokenAddress, payTo: recipient, extra: { name: 'USDG' } }] };
+  browser.context.testChallenge = challenge;
+  browser.context.testNetwork = network;
+  browser.context.testService = service;
+  browser.context.testPayer = payer;
+  const requirement = vm.runInContext('normalizePaymentRequirement(testChallenge, testNetwork, testService)', browser.context);
+  assert.equal(requirement.formattedAmount, '1.25');
+  const transaction = vm.runInContext('createPaymentTransaction(normalizePaymentRequirement(testChallenge, testNetwork, testService), testPayer)', browser.context);
+  assert.equal(transaction.from, payer);
+  assert.equal(transaction.to, tokenAddress);
+  assert.match(transaction.data, /^0xa9059cbb[0-9a-f]{128}$/);
+  browser.context.testChallenge.accepts[0].payTo = payer;
+  assert.throws(() => vm.runInContext('normalizePaymentRequirement(testChallenge, testNetwork, testService)', browser.context), /recipient/);
+});
 test('browser: rejecting a creator signature never publishes a file', async () => {
   let posted = false;
   const browser = browserFixture({ request: async ({ method }) => {

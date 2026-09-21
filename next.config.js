@@ -2,6 +2,14 @@
 const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  async headers() {
+    return [{ source: '/:path*', headers: [
+      { key: 'X-Frame-Options', value: 'DENY' },
+      { key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+      { key: 'Referrer-Policy', value: 'no-referrer' },
+      { key: 'X-Content-Type-Options', value: 'nosniff' }
+    ] }];
+  },
   outputFileTracingIncludes: {
     '/api/\\[\\[...path\\]\\]': ['src/client/index.html', 'src/client/generated/llms.txt', 'src/client/generated/docs-markdown/**/*'],
     '/*': ['src/client/index.html']

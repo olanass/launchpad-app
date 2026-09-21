@@ -3,7 +3,10 @@
 // -------------------------------------------------------------
 function initPaywallViewRouting() {
   const path = window.location.pathname;
-  if (path.includes('/p/')) {
+  if (/^\/orders\/ord_[a-f0-9]{32}$/.test(path)) {
+    switchView('payments');
+    window.openConsoleOrder(path.split('/')[2]);
+  } else if (path.includes('/p/')) {
     const paywallId = path.split('/p/')[1].split('/')[0].split('?')[0].trim();
     if (paywallId) {
       loadPaywallView(paywallId);
@@ -11,6 +14,8 @@ function initPaywallViewRouting() {
   } else if (path.includes('/services/')) {
     const serviceSlug = path.split('/services/')[1].split('/')[0].split('?')[0].trim();
     if (serviceSlug) loadServiceDetail(serviceSlug);
+  } else if (path === '/payments') {
+    switchView('payments');
   } else if (path === '/docs' || path.startsWith('/docs/')) {
     if (window.renderDocsRoute) window.renderDocsRoute();
   } else {
@@ -31,12 +36,17 @@ function initPaywallViewRouting() {
 
   window.addEventListener('popstate', () => {
     const p = window.location.pathname;
-    if (p.includes('/p/')) {
+    if (/^\/orders\/ord_[a-f0-9]{32}$/.test(p)) {
+      switchView('payments');
+      window.openConsoleOrder(p.split('/')[2]);
+    } else if (p.includes('/p/')) {
       const pid = p.split('/p/')[1].split('/')[0].split('?')[0].trim();
       loadPaywallView(pid);
     } else if (p.includes('/services/')) {
       const serviceSlug = p.split('/services/')[1].split('/')[0].split('?')[0].trim();
       loadServiceDetail(serviceSlug);
+    } else if (p === '/payments') {
+      switchView('payments');
     } else if (p === '/docs' || p.startsWith('/docs/')) {
       if (window.renderDocsRoute) window.renderDocsRoute();
     } else {

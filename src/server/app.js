@@ -17,6 +17,7 @@ function createApp({ serveClient = true } = {}) {
 const app = express();
 app.get('/api/version', (req, res) => res.set('Cache-Control', 'no-store').json({
   application: 'x402-launchpad',
+  purchaseFlow: 'durable-orders-v1',
   repository: 'olanass/launchpad-app',
   commit: process.env.VERCEL_GIT_COMMIT_SHA || null,
   environment: process.env.VERCEL_ENV || process.env.NODE_ENV || 'development'
@@ -36,6 +37,7 @@ app.use('/facilitator', facilitatorRouter);
 if (ROBINHOOD_CHAIN_CONFIG.demoMode) app.use('/api', demoApiRouter);
 app.use('/api/paywalls', paywallRouter);
 app.use('/api/services', serviceJsonParser, serviceRouter);
+app.use('/api/orders', require('./orders/routes'));
 app.get('/discovery/resources', discoveryHandler);
 app.use('/x402', serviceGatewayRouter);
 app.use('/api/privy', privyAuthRouter);

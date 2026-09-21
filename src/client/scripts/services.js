@@ -44,6 +44,12 @@ function initServiceLaunchpad() {
   document.getElementById('btnCopyDetailEndpoint')?.addEventListener('click', event => copyServiceText(serviceUiState.currentService?.gatewayUrl || '', event.currentTarget));
   document.getElementById('btnCopyCurl')?.addEventListener('click', event => copyServiceText(document.getElementById('detailCurl').textContent, event.currentTarget));
   document.getElementById('btnCopyAgentCode')?.addEventListener('click', event => copyServiceText(document.getElementById('detailAgentCode').textContent, event.currentTarget));
+  document.getElementById('btnRunService')?.addEventListener('click', () => {
+    const slug = serviceUiState.currentService?.slug;
+    history.pushState(null, '', slug ? `/payments?service=${encodeURIComponent(slug)}` : '/payments');
+    switchView('payments');
+    if (slug) selectPaymentService(slug);
+  });
   document.getElementById('serviceProjectsTableBody')?.addEventListener('click', handleServiceManagement);
 
   document.getElementById('serviceSearch')?.addEventListener('input', () => {

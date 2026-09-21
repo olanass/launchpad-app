@@ -38,7 +38,8 @@ function initNavigation() {
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
-      history.pushState(null, '', view === 'docs' ? '/docs' : '/');
+      const route = view === 'docs' ? '/docs' : (view === 'payments' ? '/payments' : '/');
+      history.pushState(null, '', route);
       switchView(view);
       if (view === 'docs' && window.renderDocsRoute) window.renderDocsRoute();
       closeMobileNavigation();
@@ -78,4 +79,8 @@ function switchView(viewName) {
     fetchMyServices();
   }
   if (viewName === 'marketplace') loadServiceMarketplace();
+  if (viewName === 'payments') {
+    if (!window.location.pathname.startsWith('/orders/')) window.resetConsoleOrder?.();
+    loadPaymentServices();
+  }
 }

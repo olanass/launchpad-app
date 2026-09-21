@@ -1,5 +1,17 @@
 # Robinhood Chain API launchpad and x402-inspired paywall
 
+## Durable payment backend
+
+The original website UI is preserved. New manual purchases use a
+shared durable order engine with versioned quotes, wallet-signed approval,
+original-transaction recovery, and saved service responses. Connect an MCP
+client to `/mcp` and use `create_order`, `get_order`, and `reconcile_order`.
+
+See [durable orders and rollout](docs/durable-orders.md) for state semantics,
+private access tokens, migration, testing, and release requirements. The
+compatibility gateway and SDK documented below remain available. Agent approval
+links open the existing payment console, using the same styling and layout.
+
 The application runs on Next.js 16 with the App Router. Next.js owns the page shell, metadata, catch-all product routes, asset delivery, development server, and production build. The existing Express routers remain mounted inside the custom Next.js server for payment verification, multipart uploads, x402 proxying, and storage; this preserves the audited middleware behavior while giving the project one runtime and one entry point.
 
 This application lets developers publish an existing HTTP endpoint as a paid API on Robinhood Chain. It creates a public listing, an HTTP 402 gateway, on-chain payment verification, durable usage analytics, logo and video metadata, and wallet-signed creator controls. The repository also contains the original encrypted-content paywall.

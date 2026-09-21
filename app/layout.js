@@ -18,6 +18,7 @@ export async function generateMetadata() {
   return {
     title,
     description,
+    referrer: 'no-referrer',
     icons: { icon: '/assets/favicon.png' },
     openGraph: {
       title,

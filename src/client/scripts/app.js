@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initGasPolling();
   initPaywallCreation();
   initServiceLaunchpad();
+  initPaymentConsole();
   initPaywallViewRouting();
   initNetworkStatusListener();
   initDocsPortal();

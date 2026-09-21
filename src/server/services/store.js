@@ -255,6 +255,34 @@ class ServiceStore {
     this.client = null;
     this.initializing = null;
   }
+  async recordOrderResult(order) {
+    const client = await this.init();
+    await client.execute('CREATE TABLE IF NOT EXISTS order_analytics (order_id TEXT PRIMARY KEY, recorded_at TEXT NOT NULL)');
+    const transaction = await client.transaction('write');
+    try {
+      const seen = await transaction.execute({ sql: 'SELECT 1 FROM order_analytics WHERE order_id = ?', args: [order.id] });
+      if (seen.rows.length) { await transaction.commit(); return; }
+      const rows = await transaction.execute({ sql: 'SELECT data, version FROM services WHERE service_id = ?', args: [order.quote.serviceId] });
+      const service = this.rowService(rows.rows[0]);
+      const now = new Date().toISOString();
+      if (service) {
+        const success = order.result.status >= 200 && order.result.status < 400;
+        if (success) {
+          service.paidRequests++; service.successfulResponses++;
+          service.totalEarned = addAmount(service.totalEarned, order.quote.displayAmount, order.quote.token);
+          service.lastRequestAt = now; service.lastSuccessAt = now;
+        } else service.failedResponses++;
+        service.recentCalls.unshift({ orderId: order.id, receiptId: order.receipt.receiptId, status: order.result.status,
+          latencyMs: order.result.receivedAt - order.executionStartedAt, success, timestamp: now });
+        service.recentCalls = service.recentCalls.slice(0, 50); service.updatedAt = now;
+        delete service._version;
+        await transaction.execute({ sql: 'UPDATE services SET data = ?, version = version + 1 WHERE service_id = ?', args: [JSON.stringify(service), service.serviceId] });
+      }
+      await transaction.execute({ sql: 'INSERT INTO order_analytics(order_id, recorded_at) VALUES (?, ?)', args: [order.id, now] });
+      await transaction.commit();
+    } catch (error) { await transaction.rollback(); throw error; }
+    finally { transaction.close(); }
+  }
 }
 
 const serviceStore = new ServiceStore();

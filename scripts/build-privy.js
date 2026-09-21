@@ -12,6 +12,12 @@ async function buildClient() {
   console.log('Bundling the @privy-io/react-auth connector...');
   try {
     await esbuild.build({
+      absWorkingDir: projectRoot, tsconfigRaw: {},
+      entryPoints: [path.join(clientDir, 'integrations', 'orders-wallet.mjs')],
+      outfile: path.join(clientDir, 'generated', 'orders-wallet.bundle.js'),
+      bundle: true, format: 'iife', globalName: 'OlanasOrderWallet', platform: 'browser', minify: true
+    });
+    await esbuild.build({
       absWorkingDir: projectRoot,
       tsconfigRaw: {},
       entryPoints: [path.join(clientDir, 'integrations', 'privy-bridge.jsx')],

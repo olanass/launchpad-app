@@ -2,7 +2,7 @@ import { createApp } from '../../src/server/app';
 import { prepareNextRequest } from '../../src/server/next-request';
 let backend;
 
-export const config = { api: { bodyParser: false, externalResolver: true, responseLimit: false } };
+export const config = { api: { bodyParser: false, externalResolver: true, responseLimit: false }, maxDuration: 60 };
 
 export default function handler(req, res) {
   if (!backend) {

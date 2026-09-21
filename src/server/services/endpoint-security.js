@@ -99,6 +99,7 @@ async function proxyRequest(target, options = {}) {
     maxResponseBytes: options.maxResponseBytes || Number(process.env.X402_PROXY_MAX_RESPONSE_BYTES) || DEFAULT_MAX_RESPONSE_BYTES
   };
   let current = target instanceof URL ? target : new URL(target);
+  if (options.followRedirects === false) return requestOnce(current, requestOptions);
   for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
     const response = await requestOnce(current, requestOptions);
     if (![301, 302, 303, 307, 308].includes(response.status) || !response.headers.location) return response;
