@@ -25,7 +25,12 @@ function validateInput(service, method, path, body) {
     return expected.length === actual.length && expected.every((segment, i) => /^\{[^}]+\}$/.test(segment) ? Boolean(actual[i]) : segment === actual[i]);
   });
   const operation = match?.[1]?.[method.toLowerCase()];
-  if (!operation) throw Object.assign(new Error('This method and path are not declared in the service OpenAPI document'), { status: 400 });
+  if (!operation) {
+    const paths = Object.entries(doc.paths).filter(([, item]) => item?.[method.toLowerCase()]).map(([name]) => name);
+    throw Object.assign(new Error('This method and path are not declared in the service OpenAPI document.' +
+      (paths.length ? ' Declared paths for ' + method + ': ' + paths.slice(0, 10).join(', ') : '') +
+      ' Read the service input schema before retrying.'), { status: 400 });
+  }
   const request = resolve(operation.requestBody);
   if (request?.required && body === null) throw Object.assign(new Error('This service requires a request body'), { status: 400 });
   const query = new URLSearchParams((path || '').split('?').slice(1).join('?'));

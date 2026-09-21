@@ -55,14 +55,33 @@ function publicOpenApi(service, gatewayUrl) {
 
 function inputSchema(service) {
   if (!service?.openapiDocument?.paths) return null;
+  const document = service.openapiDocument;
+  const resolve = value => {
+    const seen = new Set();
+    while (value?.$ref) {
+      const ref = value.$ref;
+      if (typeof ref !== 'string' || !ref.startsWith('#/') || seen.has(ref) || seen.size >= 8) return null;
+      seen.add(ref);
+      value = document;
+      for (const key of ref.slice(2).split('/').map(s => s.replace(/~1/g, '/').replace(/~0/g, '~'))) {
+        if (!value || !Object.prototype.hasOwnProperty.call(value, key)) return null;
+        value = value[key];
+      }
+    }
+    return value;
+  };
   for (const [pathName, pathItem] of Object.entries(service.openapiDocument.paths)) {
     if (!pathItem || typeof pathItem !== 'object') continue;
     for (const method of service.allowedMethods || []) {
       const operation = pathItem[method.toLowerCase()];
       if (!operation) continue;
-      const schema = operation.requestBody?.content?.['application/json']?.schema || null;
-      const parameters = Array.isArray(operation.parameters) ? operation.parameters : [];
-      return { path: pathName, method, schema, parameters };
+      const requestBody = resolve(operation.requestBody);
+      const media = requestBody?.content?.['application/json'];
+      const schema = resolve(media?.schema) ?? null;
+      const parameters = [...(Array.isArray(pathItem.parameters) ? pathItem.parameters : []),
+        ...(Array.isArray(operation.parameters) ? operation.parameters : [])].map(resolve).filter(Boolean);
+      return { path: pathName, method, schema, parameters, required: Boolean(requestBody?.required),
+        ...(media?.example !== undefined ? { example: media.example } : {}) };
     }
   }
   return null;

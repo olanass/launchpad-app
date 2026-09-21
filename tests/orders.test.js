@@ -182,6 +182,33 @@ test('orders: schema validation rejects invalid input before creating a payable 
   } finally { f.db.close(); }
 });
 
+test('orders: scorer discovery supplies the path and required fields before an unpaid order is created', async () => {
+  const { publicService } = require('../src/server/services/store');
+  const f = await fixture();
+  try {
+    f.service.openapiDocument = { openapi: '3.0.3', paths: { '/api/score': { post: {
+      requestBody: { required: true, content: { 'application/json': {
+        schema: { $ref: '#/components/schemas/ScoreRequest' }, example: { name: 'Olanas', pitch: 'AI agents pay APIs' }
+      } } }
+    } } }, components: { schemas: { ScoreRequest: { type: 'object', required: ['name', 'pitch'],
+      properties: { name: { type: 'string' }, pitch: { type: 'string' } } } } } };
+    const details = publicService(f.service, 'https://olanas.xyz');
+    assert.equal(details.input.path, '/api/score');
+    assert.deepEqual(details.input.schema.required, ['name', 'pitch']);
+    assert.equal(details.input.required, true);
+    const input = { ...f.input, requestId: 'scorer-correctable-request', body: { pitch: 'AI agents pay APIs' } };
+    await assert.rejects(f.engine.create(input), /Declared paths for POST: \/api\/score/);
+    await assert.rejects(f.engine.create({ ...input, path: details.input.path }), /required property 'name'/);
+    const before = await f.db.execute('SELECT COUNT(*) AS count FROM purchase_orders');
+    assert.equal(Number(before.rows[0].count), 1);
+    const corrected = { ...input, path: details.input.path, body: details.input.example };
+    const order = await f.engine.create(corrected);
+    assert.equal(order.paymentStatus, 'unpaid');
+    assert.equal((await f.engine.create(corrected)).id, order.id);
+    assert.equal(f.calls(), 0);
+  } finally { f.db.close(); }
+});
+
 test('orders: HTTP and MCP share private durable orders, verified payment, saved result and idempotent analytics', async () => {
   const { serviceStore } = require('../src/server/services/store');
   const { orders } = require('../src/server/orders/engine');

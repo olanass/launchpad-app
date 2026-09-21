@@ -5,6 +5,7 @@ const { ethers } = require('ethers');
 const { DATA_DIR } = require('../config/paths');
 const { ROBINHOOD_CHAIN_CONFIG: chain } = require('../config/chain');
 const { parseAmount } = require('../facilitator/amount');
+const { inputSchema } = require('./openapi');
 
 function slugify(value) {
   return String(value || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'service';
@@ -32,7 +33,7 @@ function publicService(service, baseUrl) {
     serviceId: service.serviceId, slug: service.slug, name: service.name, description: service.description,
     category: service.category, videoUrl: service.videoUrl || null,
     logoUrl: service.logo ? `${baseUrl ? baseUrl.replace(/\/$/, '') : ''}/api/services/${encodeURIComponent(service.slug)}/logo` : null,
-    allowedMethods: service.allowedMethods, price: service.price, currency: service.currency,
+    allowedMethods: service.allowedMethods, input: inputSchema(service), price: service.price, currency: service.currency,
     network: service.network, chainId: service.chainId, creatorAddress: service.creatorAddress,
     payoutAddress: service.payoutAddress, status: service.status, requests: service.paidRequests,
     revenue: service.totalEarned, revenueUsd: ['USDC', 'USDG'].includes(service.currency) ? Number(service.totalEarned) : null,
