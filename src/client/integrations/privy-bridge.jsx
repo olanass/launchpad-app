@@ -51,6 +51,7 @@ export async function initPrivy(appId) {
   if (!serverConfig.configured || !appId) return;
 
   const chain = serverConfig.chain;
+  if (chain?.chainId !== 4663 || chain.networkKey !== 'mainnet' || chain.testnet) throw new Error('Olanas supports mainnet only');
   const privyChain = {
     id: chain.chainId,
     name: chain.name,

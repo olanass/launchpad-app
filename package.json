@@ -5,12 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "start:testnet": "npm run build && node scripts/start-network.js testnet",
-    "start:networks": "npm run build && node scripts/start-networks.js",
     "dev": "node server.js",
-    "dev:testnet": "node scripts/start-network.js testnet",
-    "dev:networks": "node scripts/start-networks.js --dev",
-    "test": "node --test tests/regression.test.js tests/orders.test.js tests/payment-flow.test.mjs tests/orders-console.test.js tests/agent-guide.test.js",
+    "test": "node --test tests/regression.test.js tests/orders.test.js tests/payment-flow.test.mjs tests/orders-console.test.js tests/agent-guide.test.js tests/endpoint-routing.test.js",
     "test:orders": "node --test tests/orders.test.js",
     "test:production": "node --test --test-name-pattern=production: tests/regression.test.js",
     "test:handshake": "node --test --test-name-pattern=handshake: tests/regression.test.js",

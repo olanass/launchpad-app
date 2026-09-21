@@ -103,6 +103,66 @@ test('orders: simultaneous reconciliation executes once', async () => {
     assert.equal((await f.engine.get(f.order.id, f.token)).deliveryStatus, 'completed');
   } finally { f.db.close(); }
 });
+
+test('orders: full scorer endpoint executes once and a saved 404 never triggers another call', async () => {
+  const http = require('node:http');
+  const { proxyRequest } = require('../src/server/services/endpoint-security');
+  const f = await fixture();
+  let calls = 0;
+  let responseStatus = 200;
+  const server = http.createServer((req, res) => {
+    calls++;
+    assert.equal(req.url, '/api/score');
+    assert.equal(req.method, 'POST');
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => {
+      assert.deepEqual(JSON.parse(Buffer.concat(chunks)), f.input.body);
+      res.writeHead(responseStatus, { 'content-type': 'application/json' });
+      res.end(JSON.stringify(responseStatus === 200 ? { score: 89 } : { error: 'Not found' }));
+    });
+  });
+  server.listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  const previous = process.env.X402_TEST_ALLOW_PRIVATE_ENDPOINTS;
+  process.env.X402_TEST_ALLOW_PRIVATE_ENDPOINTS = 'true';
+  try {
+    f.service.endpointUrl = `http://127.0.0.1:${server.address().port}/api/score`;
+    f.engine.proxy = proxyRequest;
+    for (const status of [200, 404]) {
+      responseStatus = status;
+      const order = await f.engine.create({ ...f.input, requestId: 'scorer-response-' + status, path: '/api/score' });
+      await f.approve(order); await f.engine.submit(order.id, f.token, tx());
+      const result = await f.engine.reconcile(order.id, f.token);
+      assert.equal(result.result.status, status);
+      assert.equal(result.paymentStatus, 'confirmed');
+      assert.equal(result.resultStatus, status === 200 ? 'succeeded' : 'failed');
+      assert.equal(result.nextAction, status === 200 ? 'read_result' : 'inspect_service_error');
+      const before = calls;
+      await f.engine.reconcile(order.id, f.token);
+      assert.equal(calls, before);
+    }
+    assert.equal(calls, 2);
+  } finally {
+    if (previous === undefined) delete process.env.X402_TEST_ALLOW_PRIVATE_ENDPOINTS;
+    else process.env.X402_TEST_ALLOW_PRIVATE_ENDPOINTS = previous;
+    await new Promise(resolve => server.close(resolve));
+    f.db.close();
+  }
+});
+
+test('orders: a saved non-mainnet order cannot execute against mainnet verification', async () => {
+  const f = await fixture();
+  try {
+    await f.approve(); await f.engine.submit(f.order.id, f.token, tx());
+    const raw = await f.engine.load(f.order.id, f.token);
+    raw.quote.chainId = 46630;
+    await f.engine.save(raw);
+    f.engine.verify = async () => { throw Error('Must not verify a testnet order'); };
+    await assert.rejects(f.engine.reconcile(f.order.id, f.token), /not on Robinhood Chain mainnet/);
+    assert.equal(f.calls(), 0);
+  } finally { f.db.close(); }
+});
 test('orders: lost upstream response is unknown and never automatically replayed', async () => {
   const f = await fixture();
   try {
@@ -168,6 +228,7 @@ test('orders: exact method, path and body are bound; unsafe paths are rejected',
     const result = await f.engine.reconcile(routed.id, f.token);
     assert.equal(target, 'https://service.example/score/v1?city=Delhi');
     assert.equal(result.result.status, 422); assert.equal(result.deliveryStatus, 'completed');
+    assert.equal(result.resultStatus, 'failed'); assert.equal(result.nextAction, 'inspect_service_error');
     assert.notEqual(routed.requestHash, f.order.requestHash);
   } finally { f.db.close(); }
 });

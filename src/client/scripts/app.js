@@ -45,6 +45,7 @@ async function loadNetworkConfig() {
     const body = await response.json();
     const chain = body.chain;
     if (!response.ok || !chain || !Number.isSafeInteger(chain.chainId)) throw new Error('Invalid network configuration');
+    if (chain.chainId !== 4663 || chain.networkKey !== 'mainnet' || chain.testnet) throw new Error('Olanas supports mainnet only');
 
     ROBINHOOD_CHAIN_ID_DEC = chain.chainId;
     ROBINHOOD_CHAIN_ID_HEX = `0x${chain.chainId.toString(16)}`;
@@ -52,7 +53,7 @@ async function loadNetworkConfig() {
     ROBINHOOD_NETWORK_KEY = chain.networkKey;
     ROBINHOOD_RPC_URL = chain.rpcUrl;
     ROBINHOOD_EXPLORER_URL = chain.explorerUrl;
-    ROBINHOOD_NETWORKS = Array.isArray(body.networks) ? body.networks : [chain];
+    ROBINHOOD_NETWORKS = [chain];
     Object.assign(ROBINHOOD_CHAIN_PARAMS, {
       chainId: ROBINHOOD_CHAIN_ID_HEX,
       chainName: chain.name,
@@ -62,8 +63,6 @@ async function loadNetworkConfig() {
     });
 
     document.body.dataset.network = chain.networkKey;
-    const banner = document.getElementById('testnetBanner');
-    if (banner) banner.hidden = !chain.testnet;
     const explorer = document.getElementById('footerExplorerLink');
     if (explorer) explorer.href = chain.explorerUrl;
     const labels = {
@@ -77,7 +76,6 @@ async function loadNetworkConfig() {
       const element = document.getElementById(id);
       if (element) element.textContent = value;
     }
-    if (chain.testnet) document.title = `Testnet · ${document.title}`;
   } catch (error) {
     console.warn('Using bundled mainnet network defaults:', error.message);
   }

@@ -85,7 +85,9 @@ class ServiceStore {
   }
   rowService(row) {
     if (!row) return null;
-    return { ...JSON.parse(row.data), _version: Number(row.version || 0) };
+    const service = JSON.parse(row.data);
+    if (service.chainId !== chain.chainId) return null;
+    return { ...service, _version: Number(row.version || 0) };
   }
   async persist(service) {
     const client = await this.init();
@@ -136,7 +138,7 @@ class ServiceStore {
   async byCreator(address) {
     const c = await this.init();
     const r = await c.execute({ sql: 'SELECT data, version FROM services WHERE creator_address = ? ORDER BY created_at DESC', args: [address.toLowerCase()] });
-    return r.rows.map(row => this.rowService(row));
+    return r.rows.map(row => this.rowService(row)).filter(Boolean);
   }
   async hasCreationSignature(signature) {
     const c = await this.init();
@@ -146,7 +148,7 @@ class ServiceStore {
   async list({ status, category, search, limit = 20, offset = 0 } = {}) {
     const c = await this.init();
     const r = await c.execute('SELECT data, version FROM services ORDER BY created_at DESC');
-    let services = r.rows.map(row => this.rowService(row));
+    let services = r.rows.map(row => this.rowService(row)).filter(Boolean);
     if (status) services = services.filter(service => service.status === status);
     if (category) services = services.filter(service => service.category.toLowerCase() === category.toLowerCase());
     if (search) {

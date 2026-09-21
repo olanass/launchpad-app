@@ -26,30 +26,9 @@ async function switchProviderNetwork(prov, network) {
 function initNetworkSelector() {
   const select = document.getElementById('networkSelector');
   if (!select) return;
-  const networks = ROBINHOOD_NETWORKS.length ? ROBINHOOD_NETWORKS : [{ networkKey: ROBINHOOD_NETWORK_KEY, name: ROBINHOOD_CHAIN_NAME, chainId: ROBINHOOD_CHAIN_ID_DEC }];
-  select.replaceChildren(...networks.map(network => new Option(
-    `${network.testnet ? 'Testnet' : 'Mainnet'} (${network.chainId})`,
-    network.networkKey
-  )));
-  select.value = ROBINHOOD_NETWORK_KEY;
-  select.addEventListener('change', async () => {
-    const target = networks.find(network => network.networkKey === select.value);
-    if (!target || target.networkKey === ROBINHOOD_NETWORK_KEY) return;
-    select.disabled = true;
-    try {
-      if (!target.appUrl) throw new Error(`The ${target.name} app URL is not configured on this deployment.`);
-      const provider = _metamask || (state.currentWallet?.isRealWeb3 ? window.ethereum : null);
-      if (provider && !await switchProviderNetwork(provider, target)) throw new Error(`Your wallet did not switch to ${target.name}.`);
-      const destination = new URL(target.appUrl, window.location.origin);
-      destination.search = '';
-      destination.hash = '';
-      window.location.assign(destination.toString());
-    } catch (error) {
-      select.value = ROBINHOOD_NETWORK_KEY;
-      select.disabled = false;
-      showAppNotice({ title: 'Network Switch Failed', message: error.message, type: 'warning' });
-    }
-  });
+  select.replaceChildren(new Option('Mainnet (4663)', 'mainnet'));
+  select.value = 'mainnet';
+  select.disabled = true;
 }
 
 async function ensureRobinhoodNetwork(prov = window.ethereum) {
@@ -89,7 +68,7 @@ function updateNetworkUI(isOnRobinhood) {
 
   if (isOnRobinhood) {
     pill.classList.remove('warning');
-    text.textContent = ROBINHOOD_NETWORK_KEY === 'testnet' ? `Testnet (${ROBINHOOD_CHAIN_ID_DEC})` : `Robinhood (${ROBINHOOD_CHAIN_ID_DEC})`;
+    text.textContent = `Robinhood (${ROBINHOOD_CHAIN_ID_DEC})`;
     pill.title = `Active on ${ROBINHOOD_CHAIN_NAME}`;
   } else {
     pill.classList.add('warning');

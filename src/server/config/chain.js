@@ -9,15 +9,6 @@ const NETWORKS = {
     rpcUrl: 'https://rpc.mainnet.chain.robinhood.com',
     explorerUrl: 'https://robinhoodchain.blockscout.com',
     testnet: false
-  },
-  testnet: {
-    networkKey: 'testnet',
-    networkId: 'robinhood-chain-testnet',
-    chainId: 46630,
-    name: 'Robinhood Chain Testnet',
-    rpcUrl: 'https://rpc.testnet.chain.robinhood.com',
-    explorerUrl: 'https://explorer.testnet.chain.robinhood.com',
-    testnet: true
   }
 };
 
@@ -31,7 +22,7 @@ const CANONICAL_MAINNET_TOKENS = {
 
 function getRobinhoodChainConfig(requestedNetwork) {
   const networkKey = (requestedNetwork || 'mainnet').toLowerCase();
-  if (!NETWORKS[networkKey]) throw new Error('Robinhood network must be "mainnet" or "testnet"');
+  if (networkKey !== 'mainnet') throw new Error('Olanas supports Robinhood Chain mainnet only (chain ID 4663). Set ROBINHOOD_NETWORK=mainnet.');
   const network = NETWORKS[networkKey];
   const demoMode = process.env.X402_DEMO_MODE === 'true' && process.env.NODE_ENV !== 'production';
   const tokens = { ETH: { symbol: 'ETH', name: 'Ether', decimals: 18, address: null } };

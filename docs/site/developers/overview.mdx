@@ -48,11 +48,11 @@ The launchpad validates endpoint DNS results and rejects loopback, private, link
 ```powershell
 npm ci
 npm test
-npm run dev:networks
+npm run dev
 ```
 
-This starts the mainnet-configured application at `http://localhost:4020` and the isolated testnet application at `http://localhost:4021`.
+This starts the mainnet-configured application at `http://localhost:4020`.
 
 <Warning>
-  Use testnet and low-value test accounts while integrating. The test suite uses mocked providers and is not a substitute for live end-to-end validation.
+  Use the isolated test suite while integrating. Live calls on mainnet spend real funds. The test suite uses mocked providers and is not a substitute for live end-to-end validation.
 </Warning>

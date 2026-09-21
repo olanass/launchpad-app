@@ -7,7 +7,7 @@ const crypto = require('node:crypto');
 function fixture() {
   const nodes = new Map(), storage = new Map(), calls = [];
   let payments = 0;
-  const order = { id: 'ord_' + 'a'.repeat(32), requestId: 'test-request', slug: 'pitch', method: 'POST', body: {},
+  const order = { id: 'ord_' + 'a'.repeat(32), requestId: 'test-request', slug: 'pitch', method: 'POST', body: {}, createdAt: Date.now(),
     approvalStatus: 'pending', paymentStatus: 'unpaid', deliveryStatus: 'not_started',
     quote: { version: 1, name: 'Pitch', displayAmount: '0.002', token: 'USDG', recipient: '0xrecipient', expiresAt: Date.now() + 300000 } };
   const context = vm.createContext({ crypto: crypto.webcrypto, TextDecoder, Uint8Array, atob,
@@ -40,4 +40,17 @@ test('original payment console: changed quote requires another review click', as
   assert.equal(f.payments, 0);
   await f.context.handleBrowserPayment({ preventDefault() {} });
   assert.equal(f.payments, 1);
+});
+
+test('original payment console: saved upstream error explains payment and never pays again', async () => {
+  const f = fixture();
+  f.order.approvalStatus = 'approved'; f.order.paymentStatus = 'confirmed'; f.order.deliveryStatus = 'completed';
+  f.order.result = { status: 404, body: Buffer.from('{"error":"Not found"}').toString('base64') };
+  let label, detail;
+  f.context.paymentSetStatus = value => { label = value; };
+  f.context.paymentShowResult = (_body, value) => { detail = value; };
+  await f.context.handleBrowserPayment({ preventDefault() {} });
+  assert.match(label, /Payment confirmed.*API failed.*404/);
+  assert.match(detail, /do not pay again/);
+  assert.equal(f.payments, 0);
 });

@@ -59,6 +59,18 @@ arbitrary third-party APIs cannot be promised exactly-once execution.
 Paid order execution does not follow redirects; a redirect response is saved
 for inspection rather than replaying a potentially side-effecting request.
 
+`resultStatus` is `succeeded` only for HTTP 2xx, `failed` for other saved responses,
+and `null` before a response exists. An HTTP error keeps delivery `completed`
+(the response is saved), but returns `nextAction: inspect_service_error` and the
+console explains that payment succeeded while the API failed. Reading or
+reconciling that order never charges or calls the service again.
+
+The configured private endpoint may be an API base URL or a full operation URL.
+For example, `/api/score` appended to `https://api.example` targets
+`https://api.example/api/score`. If the endpoint already ends in `/api/score`,
+the same operation path is used once. Other paths are appended under the
+configured base path; query strings are preserved or replaced by the request.
+
 Input validation uses published OpenAPI request-body schemas with local refs,
 required query parameters, bounded compilation and validation, and no network
 reference loading. Unpublished schemas cannot provide input validation beyond
@@ -84,7 +96,7 @@ transfer, then submits only the saved transaction hash for reconciliation.
 No website private key or unrestricted MCP signing tool is introduced.
 The legacy x402/SDK routes remain compatibility paths; old local requests are
 not silently migrated. See the companion's AUTONOMOUS-PAYMENTS.md for setup,
-limits, crash recovery, and testnet release requirements.
+limits, crash recovery, and release requirements.
 
 ## Verification and rollout
 
@@ -100,7 +112,7 @@ Before production cutover:
 
 1. Back up the existing durable database and deploy to a preview environment
    using a separate database, configured RPC, and public origin.
-2. Run the new journey in a browser with a human-operated wallet on testnet:
+2. Run automated checks with mocked payments first. Any live browser validation uses a human-operated mainnet wallet and requires an explicitly approved spending limit:
    discovery, quote refresh, rejection/reopening, approval, cancellation,
    confirmation, restart, saved-result retrieval, and an upstream timeout.
 3. Verify mobile layouts and extension behavior. Automated server/build checks

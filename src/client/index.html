@@ -56,11 +56,10 @@
           <span class="theme-toggle-icon" aria-hidden="true"></span>
         </button>
 
-        <label class="network-selector" for="networkSelector" title="Choose a Robinhood Chain network">
+        <label class="network-selector" for="networkSelector" title="Robinhood Chain mainnet">
           <span class="network-selector-label">Network</span>
-          <select id="networkSelector" aria-label="Robinhood Chain network">
+          <select id="networkSelector" aria-label="Robinhood Chain network" disabled>
             <option value="mainnet">Mainnet</option>
-            <option value="testnet">Testnet</option>
           </select>
         </label>
 
@@ -136,10 +135,6 @@
     <button type="button" class="mobile-nav-backdrop" id="mobileNavBackdrop" aria-label="Close navigation menu" tabindex="-1"></button>
   </header>
 
-  <div class="testnet-banner" id="testnetBanner" hidden>
-    Robinhood Chain Testnet mode — use test assets only; they have no monetary value.
-  </div>
-
   <!-- Main Content Layout -->
   <main class="app-main">
     <section id="view-service-launch" class="app-view active">
@@ -188,7 +183,7 @@
                   <button type="button" class="service-logo-remove" id="btnRemoveServiceLogo" hidden>Remove</button>
                 </div>
               </div>
-              <div class="form-group service-span-2"><label for="serviceEndpoint">Your API endpoint <span>Required</span></label><div class="endpoint-input-wrap"><span>↗</span><input id="serviceEndpoint" class="form-control" type="url" placeholder="https://api.yoursite.com/generate" autocomplete="url"></div><small>We keep this URL private and create a protected public gateway.</small></div>
+              <div class="form-group service-span-2"><label for="serviceEndpoint">Your API endpoint <span>Required</span></label><div class="endpoint-input-wrap"><span>↗</span><input id="serviceEndpoint" class="form-control" type="url" placeholder="https://api.yoursite.com/generate" autocomplete="url"></div><small>Use your full operation URL, or the base URL for a multi-route API. A matching OpenAPI path is not appended twice. This URL stays private.</small></div>
               <div class="form-group"><label for="serviceName">Product name</label><input id="serviceName" class="form-control" maxlength="120" placeholder="WeatherAI"></div>
               <div class="form-group"><label for="serviceCategory">Category</label><select id="serviceCategory" class="form-control"><option>AI & Models</option><option>Data</option><option>Developer Tools</option><option>Finance</option><option>Media</option><option>Other</option></select></div>
               <div class="form-group service-span-2"><label for="serviceDescription">One-line description</label><input id="serviceDescription" class="form-control" maxlength="2000" placeholder="AI-ready weather data for apps and autonomous agents"></div>
