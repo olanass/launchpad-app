@@ -32,11 +32,13 @@ function renderConsoleOrder(order) {
     approval: order.approvalStatus, payment: order.paymentStatus, delivery: order.deliveryStatus, transaction: order.txHash };
   if (order.result) {
     const text = new TextDecoder().decode(Uint8Array.from(atob(order.result.body), c => c.charCodeAt(0)));
-    paymentShowResult(text, 'HTTP ' + order.result.status + ' · Saved result · ' + order.id);
+    const succeeded = order.result.status >= 200 && order.result.status < 300;
+    paymentSetStatus(succeeded ? 'Payment confirmed · API succeeded' : 'Payment confirmed · API failed (HTTP ' + order.result.status + ')', succeeded ? 'success' : 'error');
+    paymentShowResult(text, 'HTTP ' + order.result.status + (succeeded ? ' · Saved result · ' : ' · Payment confirmed. Contact the service creator; do not pay again. · ') + order.id);
     paymentButton('View saved result');
     paymentRecordHistory({ serviceName: order.quote.name, slug: order.slug, amount: order.quote.displayAmount, token: order.quote.token,
       txHash: order.txHash, receiptId: order.receipt?.receiptId || '', status: 'HTTP ' + order.result.status,
-      ok: order.result.status >= 200 && order.result.status < 400, createdAt: new Date(order.createdAt).toISOString() });
+      ok: succeeded, createdAt: new Date(order.createdAt).toISOString() });
   } else {
     paymentShowResult(context, order.deliveryStatus === 'unknown' ? 'Delivery is uncertain. Do not pay again; contact the service creator.' : 'Review this exact request. Quote expires: ' + new Date(order.quote.expiresAt).toLocaleString());
     paymentButton(order.approvalStatus === 'expired' ? 'Refresh quote' : order.approvalStatus === 'rejected' ? 'Reopen for review' :

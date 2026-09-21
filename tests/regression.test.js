@@ -115,36 +115,14 @@ test('production: simulated proofs remain disabled even when demo flag is set', 
   const child = spawnSync(process.execPath, ['-e', "const c=require('./src/server/config/chain').ROBINHOOD_CHAIN_CONFIG;if(c.demoMode)process.exit(1)"], { cwd: projectRoot, env: { ...process.env, NODE_ENV: 'production' } });
   assert.equal(child.status, 0, child.stderr.toString());
 });
-test('production: testnet configuration is isolated from mainnet data and token addresses', () => {
-  const script = `
-    const config = require('./src/server/config/chain').ROBINHOOD_CHAIN_CONFIG;
-    const paths = require('./src/server/config/paths');
-    console.log(JSON.stringify({ config, dataDir: paths.DATA_DIR }));
-  `;
-  const child = spawnSync(process.execPath, ['-e', script], {
-    cwd: projectRoot,
-    env: {
-      ...process.env,
-      NODE_ENV: 'test',
-      X402_DEMO_MODE: 'false',
-      X402_DATA_DIR: '',
-      ROBINHOOD_TESTNET_DATA_DIR: '',
-      ROBINHOOD_NETWORK: 'testnet',
-      ROBINHOOD_RPC_URL: '',
-      USDC_CONTRACT_ADDRESS: '0x0000000000000000000000000000000000000002'
-    }
-  });
-  assert.equal(child.status, 0, child.stderr.toString());
-  const { config: testnet, dataDir } = JSON.parse(child.stdout.toString());
-  assert.equal(testnet.chainId, 46630);
-  assert.equal(testnet.caip2, 'eip155:46630');
-  assert.equal(testnet.networkId, 'robinhood-chain-testnet');
-  assert.equal(testnet.rpcUrl, 'https://rpc.testnet.chain.robinhood.com');
-  assert.equal(testnet.explorerUrl, 'https://explorer.testnet.chain.robinhood.com');
-  assert.equal(testnet.testnet, true);
-  assert.equal(testnet.supportedTokens.USDC, undefined);
-  assert.equal(testnet.supportedTokens.OLANAS, undefined);
-  assert.equal(path.basename(dataDir), 'uploads-testnet');
+test('production: unsupported networks fail before startup', () => {
+  for (const network of ['testnet', 'other', 'toString', '__proto__']) {
+    const child = spawnSync(process.execPath, ['-e', "require('./src/server/config/chain')"], {
+      cwd: projectRoot, env: { ...process.env, ROBINHOOD_NETWORK: network }
+    });
+    assert.notEqual(child.status, 0);
+    assert.match(child.stderr.toString(), /mainnet only/);
+  }
 });
 test('production: OLANAS is a canonical 18-decimal mainnet payment token', () => {
   assert.deepEqual(config.supportedTokens.OLANAS, {
@@ -338,7 +316,7 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
       name: 'Weather AI', description: 'AI-ready weather data API', category: 'Data', videoUrl: 'https://video.example.com/weather-demo',
       logoHash: crypto.createHash('sha256').update(logoBytes).digest('hex'),
       logoDataUrl: `data:image/png;base64,${logoBytes.toString('base64')}`,
-      endpointUrl: `http://127.0.0.1:${upstream.address().port}/origin`,
+      endpointUrl: `http://127.0.0.1:${upstream.address().port}/origin/forecast`,
       allowedMethods: ['POST'], price: '0.002', currency: 'USDC',
       creatorAddress: creator.address, payoutAddress: creator.address, creatorTimestamp: timestamp
     };
@@ -466,15 +444,38 @@ test('production: MCP endpoint completes a stateless protocol initialization', a
   assert.ok(initialized.result.capabilities.tools);
   assert.equal((await fetch(base + '/mcp')).status, 405);
 });
-test('production: network selector config advertises isolated mainnet and testnet targets', async () => {
+test('production: wallet configuration advertises only mainnet', async () => {
   const response = await fetch(base + '/api/privy/config').then(r => r.json());
   assert.equal(response.chain.networkKey, 'mainnet');
   assert.deepEqual(response.networks.map(network => [network.networkKey, network.chainId]), [
-    ['mainnet', 4663],
-    ['testnet', 46630]
+    ['mainnet', 4663]
   ]);
   assert.ok(response.networks.every(network => network.appUrl));
-  assert.match(await fetch(base).then(r => r.text()), /id="networkSelector"/);
+  const html = await fetch(base).then(r => r.text());
+  assert.match(html, /id="networkSelector"[^>]*disabled/);
+  assert.doesNotMatch(html, /value="testnet"/);
+});
+
+test('production: old testnet listings remain stored but cannot be discovered or purchased', async () => {
+  const service = await serviceStore.create({ name: 'Old testnet listing', description: '', category: 'Data',
+    endpointUrl: 'https://example.com/api', allowedMethods: ['POST'], price: '0.002', currency: 'USDG',
+    creatorAddress: creator.address, payoutAddress: creator.address, creatorSignature: crypto.randomUUID() });
+  const db = await serviceStore.init();
+  const old = { ...service, chainId: 46630, network: 'robinhood-chain-testnet' };
+  await db.execute({ sql: 'UPDATE services SET data = ? WHERE service_id = ?', args: [JSON.stringify(old), service.serviceId] });
+  try {
+    assert.equal(await serviceStore.getBySlug(service.slug), null);
+    assert.equal(await serviceStore.getById(service.serviceId), null);
+    assert.ok(!(await serviceStore.byCreator(creator.address)).some(item => item.serviceId === service.serviceId));
+    assert.equal((await serviceStore.list({ search: 'Old testnet listing' })).total, 0);
+    const gateway = await fetch(base + '/x402/' + service.slug, { method: 'POST' });
+    assert.equal(gateway.status, 404);
+    assert.equal(gateway.headers.get('payment-required'), null);
+    const rows = await db.execute({ sql: 'SELECT data FROM services WHERE service_id = ?', args: [service.serviceId] });
+    assert.equal(JSON.parse(rows.rows[0].data).chainId, 46630);
+  } finally {
+    await db.execute({ sql: 'DELETE FROM services WHERE service_id = ?', args: [service.serviceId] });
+  }
 });
 test('production: hosted payment console shell includes its browser assets', async () => {
   const html = fs.readFileSync(path.join(projectRoot, 'src', 'client', 'index.html'), 'utf8');
@@ -561,9 +562,11 @@ test('browser: rejecting a creator signature never publishes a file', async () =
   assert.equal(posted, false);
   assert.equal(browser.document.getElementById('btnPublishPaywall').disabled, false);
 });
-test('browser: loads and switches to the server-selected Robinhood testnet', async () => {
-  const provider = { request: async ({ method }) => {
-    if (method === 'eth_chainId') return '0xb626';
+test('browser: rejects stale testnet configuration and switches the wallet to mainnet', async () => {
+  let walletChain = '0xb626';
+  const provider = { request: async ({ method, params }) => {
+    if (method === 'eth_chainId') return walletChain;
+    if (method === 'wallet_switchEthereumChain') { assert.equal(params[0].chainId, '0x1237'); walletChain = params[0].chainId; return; }
     throw new Error('Unexpected provider method ' + method);
   } };
   const browser = browserFixture(provider, async url => {
@@ -585,11 +588,11 @@ test('browser: loads and switches to the server-selected Robinhood testnet', asy
     };
   });
   await vm.runInContext('loadNetworkConfig()', browser.context);
-  assert.equal(vm.runInContext('ROBINHOOD_CHAIN_ID_DEC', browser.context), 46630);
-  assert.equal(vm.runInContext('ROBINHOOD_CHAIN_ID_HEX', browser.context), '0xb626');
+  assert.equal(vm.runInContext('ROBINHOOD_CHAIN_ID_DEC', browser.context), 4663);
+  assert.equal(vm.runInContext('ROBINHOOD_CHAIN_ID_HEX', browser.context), '0x1237');
   assert.equal(await vm.runInContext('ensureRobinhoodNetwork()', browser.context), true);
-  assert.equal(browser.document.body.dataset.network, 'testnet');
-  assert.equal(browser.document.getElementById('testnetBanner').hidden, false);
+  assert.notEqual(browser.document.body.dataset.network, 'testnet');
+  assert.equal(walletChain, '0x1237');
 });
 test('browser: USDC checkout sends the exact token amount and retries the same transaction', async () => {
   const transactions = [];

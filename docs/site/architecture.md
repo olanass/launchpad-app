@@ -28,7 +28,7 @@ The application is a single Node.js service with a static browser client. The or
 
 `src/server/config/paths.js` owns project, client, and data paths. Feature modules should not calculate paths relative to their own source directories.
 
-`ROBINHOOD_NETWORK` selects `mainnet` or `testnet`. The selected chain configuration is exposed to the browser through `/api/privy/config`, keeping wallet switching, checkout challenges, verification, explorer links, and UI labels aligned. Testnet storage is always isolated through `ROBINHOOD_TESTNET_DATA_DIR` or the default `uploads-testnet` directory.
+`ROBINHOOD_NETWORK` accepts only `mainnet` (chain ID `4663`). `/api/privy/config` exposes this single network to wallet connections and checkout. Unsupported network settings fail at startup. Local data uses `X402_DATA_DIR` or `uploads`.
 
 ## Client modules
 

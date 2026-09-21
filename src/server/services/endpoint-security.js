@@ -56,7 +56,12 @@ async function resolvePublicEndpoint(value) {
 function joinEndpoint(baseUrl, suffix, search) {
   const target = new URL(baseUrl);
   const cleanSuffix = String(suffix || '').replace(/^\/+/, '');
-  if (cleanSuffix) target.pathname = target.pathname.replace(/\/+$/, '') + '/' + cleanSuffix;
+  const basePath = target.pathname.replace(/\/+$/, '');
+  // Creators can register a full operation URL or an API base URL. Discovery
+  // still advertises the OpenAPI path; do not append that same path twice.
+  if (cleanSuffix && !basePath.endsWith('/' + cleanSuffix.replace(/\/+$/, ''))) {
+    target.pathname = basePath + '/' + cleanSuffix;
+  }
   if (search) target.search = search.startsWith('?') ? search : `?${search}`;
   return target;
 }

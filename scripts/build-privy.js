@@ -2,6 +2,8 @@ const esbuild = require('esbuild-wasm');
 const fs = require('fs');
 const path = require('path');
 const { buildDocs } = require('./build-docs');
+require('../src/server/config/load-env').loadEnv();
+require('../src/server/config/chain'); // Fail builds configured for an unsupported network.
 
 const projectRoot = path.resolve(__dirname, '..');
 const clientDir = path.join(projectRoot, 'src', 'client');

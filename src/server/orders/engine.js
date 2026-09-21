@@ -33,10 +33,10 @@ function cancellationMessage(order) {
 function view(order) {
   const { endpointUrl, accessHash, fingerprint, revision, ...visible } = order;
   const expired = order.approvalStatus === 'pending' && order.quote.expiresAt <= Date.now();
-  return { ...visible, approvalStatus: expired ? 'expired' : order.approvalStatus,
+  return { ...visible, resultStatus: order.result ? (order.result.status >= 200 && order.result.status < 300 ? 'succeeded' : 'failed') : null, approvalStatus: expired ? 'expired' : order.approvalStatus,
     deliveryStatus: order.deliveryStatus === 'executing' && order.executionStartedAt + 60000 < Date.now() ? 'unknown' : order.deliveryStatus,
     nextAction: expired ? 'refresh_quote' : order.approvalStatus === 'rejected' ? 'reopen_order' :
-      order.paymentStatus === 'submitted' ? 'reconcile_payment' : order.deliveryStatus === 'completed' ? 'read_result' :
+      order.paymentStatus === 'submitted' ? 'reconcile_payment' : order.deliveryStatus === 'completed' ? (order.result?.status >= 200 && order.result.status < 300 ? 'read_result' : 'inspect_service_error') :
         order.approvalStatus === 'pending' ? 'human_approval' : order.paymentStatus === 'unpaid' ? 'recover_wallet_transaction' : 'inspect_delivery' };
 }
 
@@ -184,6 +184,7 @@ class OrderEngine {
     }
     if (!order.txHash || !['submitted', 'confirmed'].includes(order.paymentStatus) || order.deliveryStatus !== 'not_started') return view(order);
     const q = order.quote;
+    if (q.chainId !== this.chain.chainId) throw fail('This order is not on Robinhood Chain mainnet', 400);
     const checked = await this.verify({ scheme: 'onchain-tx', payer: order.payer, txHash: order.txHash },
       { token: q.token, price: q.displayAmount, recipient: q.recipient, resource: '/api/orders/' + order.id });
     if (!checked.valid) {
