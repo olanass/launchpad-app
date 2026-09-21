@@ -71,7 +71,11 @@ async function requestOnce(target, options) {
       headers: options.headers,
       timeout: options.timeoutMs,
       servername: endpoint.hostname,
-      lookup: (_hostname, _lookupOptions, callback) => callback(null, selected.address, selected.family)
+      // Node's connection-family selection requests an array with all:true.
+      // Keep DNS pinned to the validated address in either callback format.
+      lookup: (_hostname, lookupOptions, callback) => lookupOptions?.all
+        ? callback(null, [selected])
+        : callback(null, selected.address, selected.family)
     }, response => {
       const chunks = [];
       let bytes = 0;

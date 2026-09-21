@@ -24,13 +24,45 @@ const vault = require('../src/server/vault/storage');
 const app = require('../src/server/app');
 const { serviceCreationMessage, managementMessage } = require('../src/server/services/routes');
 const { serviceStore } = require('../src/server/services/store');
-const { isPrivateAddress } = require('../src/server/services/endpoint-security');
+const { isPrivateAddress, proxyRequest } = require('../src/server/services/endpoint-security');
 const { prepareNextRequest } = require('../src/server/next-request');
 const { OlanasAgent, safeSuffix } = require('../sdk');
 const payer = ethers.Wallet.createRandom();
 const creator = ethers.Wallet.createRandom();
 let server;
 let base;
+test('proxy: pinned DNS supports Node automatic family selection and single-address mode', async (t) => {
+  const net = require('node:net');
+  const http = require('node:http');
+  const original = net.getDefaultAutoSelectFamily();
+  t.mock.method(require('node:dns').promises, 'lookup', async () => [{ address: '127.0.0.1', family: 4 }]);
+  const upstream = http.createServer((req, res) => {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify({ method: req.method, body: JSON.parse(body) }));
+    });
+  });
+  upstream.listen(0, '127.0.0.1');
+  await new Promise(resolve => upstream.once('listening', resolve));
+  try {
+    for (const enabled of [true, false]) {
+      net.setDefaultAutoSelectFamily(enabled);
+      // A hostname forces the custom DNS callback; IP literals skip it.
+      const response = await proxyRequest(new URL('http://scorer.example:' + upstream.address().port + '/api/score'), {
+        method: 'POST', headers: { 'content-type': 'application/json', connection: 'close' },
+        body: Buffer.from('{"pitch":"AI agents pay APIs"}'), followRedirects: false
+      });
+      assert.equal(response.status, 200);
+      assert.deepEqual(JSON.parse(response.body), { method: 'POST', body: { pitch: 'AI agents pay APIs' } });
+    }
+  } finally {
+    net.setDefaultAutoSelectFamily(original);
+    upstream.closeAllConnections();
+    await new Promise(resolve => upstream.close(resolve));
+  }
+});
 test.before(async () => {
   server = app.listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));

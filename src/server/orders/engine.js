@@ -208,8 +208,14 @@ class OrderEngine {
         encoding: 'base64', body: response.body.toString('base64'), receivedAt: Date.now() };
       order.deliveryStatus = 'completed';
       await this.save(order, 'result_saved');
-    } catch (_) {
+    } catch (error) {
       order.deliveryStatus = 'unknown';
+      // Keep actionable diagnostics without exposing private endpoint URLs or
+      // upstream messages. An uncertain delivery must still never be replayed.
+      order.deliveryError = {
+        code: /^[A-Z][A-Z0-9_]{1,63}$/.test(error.code || '') ? error.code : 'UPSTREAM_DELIVERY_ERROR',
+        message: 'Payment confirmed, but the API result could not be saved. Inspect this order; do not pay again.'
+      };
       await this.save(order, 'delivery_unknown');
     }
     if (order.deliveryStatus === 'completed') await this.recordAnalytics(order);

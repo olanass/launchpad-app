@@ -106,9 +106,12 @@ test('orders: simultaneous reconciliation executes once', async () => {
 test('orders: lost upstream response is unknown and never automatically replayed', async () => {
   const f = await fixture();
   try {
-    let calls = 0; f.engine.proxy = async () => { calls++; throw Error('socket lost after remote execution'); };
+    let calls = 0; f.engine.proxy = async () => { calls++; throw Object.assign(Error('socket lost after remote execution at private endpoint'), { code: 'ECONNRESET' }); };
     await f.approve(); await f.engine.submit(f.order.id, f.token, tx());
-    assert.equal((await f.engine.reconcile(f.order.id, f.token)).deliveryStatus, 'unknown');
+    const failed = await f.engine.reconcile(f.order.id, f.token);
+    assert.equal(failed.deliveryStatus, 'unknown');
+    assert.equal(failed.deliveryError.code, 'ECONNRESET');
+    assert.ok(!JSON.stringify(failed.deliveryError).includes('private endpoint'));
     await f.engine.reconcile(f.order.id, f.token); assert.equal(calls, 1);
     assert.equal((await f.engine.get(f.order.id, f.token)).paymentStatus, 'confirmed');
   } finally { f.db.close(); }
