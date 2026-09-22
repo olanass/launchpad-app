@@ -1,5 +1,7 @@
 # Olanas docs identity
 
+The docs sidebar uses `logo-original.jpg`, an unmodified copy of the owner-supplied `Branding Kit/logo.jpg`, as the authoritative face in both themes. Do not substitute the PDF's traced face. `wordmark-light.svg` and `wordmark-dark.svg` retain only the PDF lettering alongside this original image.
+
 `logo-light.svg`, `logo-dark.svg`, and `favicon.svg` preserve the vector paths from page 5 of **OLANAS Design System v1.0 (September 2026)**. The wordmark is artwork, not typeset text.
 
 Use the light lockup on light surfaces and the dark lockup on dark surfaces. The face stays black with white features in both themes; the dark lockup includes its original white carrier. Do not invert the artwork or reconstruct its geometry with CSS.

@@ -42,7 +42,9 @@ body[data-view='docs'] .docs-app-shell {
 .docs-app-shell .docs-sidebar { padding: 32px 16px; background: var(--ui-bg); border-color: var(--ui-line); }
 .docs-app-shell .docs-main { background: var(--ui-bg); }
 .docs-app-shell .docs-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; color: var(--ui-ink); padding: 12px 12px 24px; }
-.docs-app-shell .docs-brand img { display: block; background: transparent; border-radius: 0; padding: 0; width: 184px; height: auto; }
+.docs-app-shell .docs-brand .docs-brand-lockup { display: flex; align-items: center; gap: 12px; }
+.docs-app-shell .docs-brand img { display: block; background: transparent; border-radius: 0; padding: 0; width: 124px; height: auto; }
+.docs-app-shell .docs-brand .docs-logo-original { width: 48px; height: 48px; border-radius: 8px; object-fit: contain; flex-shrink: 0; }
 .docs-app-shell .docs-brand .docs-logo-dark { display: none; }
 html[data-theme='dark'] .docs-app-shell .docs-brand .docs-logo-light { display: none; }
 html[data-theme='dark'] .docs-app-shell .docs-brand .docs-logo-dark { display: block; }
