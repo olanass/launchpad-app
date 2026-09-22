@@ -1,0 +1,109 @@
+/* Olanas design system v1.0: semantic themes for the docs application. */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@700&display=swap');
+
+body[data-view='docs'] {
+  --ui-bg: #ffffff;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #f5f7f6;
+  --ui-ink: #050505;
+  --ui-muted: #59665f;
+  --ui-subtle: #59665f;
+  --ui-line: #dce3df;
+  --ui-line-strong: #77857c;
+  --ui-green: #00823f;
+  --ui-green-soft: #e8f8ee;
+  --ui-green-ink: #ffffff;
+  --docs-signal: #00d96b;
+  --docs-control-border: #77857c;
+  --font-mono: 'IBM Plex Mono', monospace;
+  background: var(--ui-bg);
+}
+html[data-theme='dark'] body[data-view='docs'] {
+  --ui-bg: #050505;
+  --ui-surface: #101412;
+  --ui-surface-soft: #202124;
+  --ui-ink: #ffffff;
+  --ui-muted: #adb8b1;
+  --ui-subtle: #adb8b1;
+  --ui-line: #303b34;
+  --ui-line-strong: #78867d;
+  --ui-green: #00d96b;
+  --ui-green-soft: #102b1c;
+  --ui-green-ink: #050505;
+  --docs-control-border: #78867d;
+}
+body[data-view='docs'] .docs-app-shell {
+  grid-template-columns: 264px minmax(0, 1fr);
+  max-width: 1440px;
+  margin: auto;
+  background: var(--ui-bg);
+  font-family: Inter, sans-serif;
+}
+.docs-app-shell .docs-sidebar { padding: 32px 16px; background: var(--ui-bg); border-color: var(--ui-line); }
+.docs-app-shell .docs-main { background: var(--ui-bg); }
+.docs-app-shell .docs-brand { color: var(--ui-ink); padding: 0 8px 24px; }
+.docs-app-shell .docs-brand img { background: #fff; border-radius: 8px; padding: 4px; width: 40px; height: 40px; }
+.docs-app-shell .docs-brand span { color: var(--ui-muted); font-size: 12px; }
+.docs-search-label { display: block; margin-bottom: 8px; font-size: 12px; color: var(--ui-muted); }
+.docs-app-shell .docs-search { min-height: 44px; border-radius: 8px; border-color: var(--docs-control-border); background: var(--ui-surface); color: var(--ui-muted); }
+.docs-app-shell .docs-search input { color: var(--ui-ink); background: transparent; font-size: 14px; }
+.docs-app-shell .docs-search input::placeholder { color: var(--ui-muted); }
+.docs-app-shell .docs-nav-group { gap: 4px; margin-bottom: 24px; }
+.docs-app-shell .docs-nav-group > span { color: var(--ui-muted); font: 400 12px/16px var(--font-mono); letter-spacing: .04em; }
+.docs-app-shell .docs-nav-group a { padding: 12px; font-size: 14px; line-height: 20px; border-left: 2px solid transparent; }
+.docs-app-shell .docs-nav-group a.active { border-left-color: var(--ui-green); }
+.docs-app-shell .docs-source-link { color: var(--ui-muted); border-color: var(--ui-line); font-size: 12px; min-height: 44px; }
+.docs-app-shell .docs-article { width: min(100% - 96px, 800px); padding: 64px 0; }
+.docs-app-shell .docs-article-head { padding-bottom: 32px; margin-bottom: 32px; gap: 24px; }
+.docs-app-shell .docs-article-head span { color: var(--ui-green); font: 400 12px/16px var(--font-mono); }
+.docs-app-shell .docs-article-head h1 { font: 700 clamp(32px, 4vw, 48px)/1.125 'Space Grotesk', Inter, sans-serif; letter-spacing: -.035em; margin: 16px 0; }
+.docs-app-shell .docs-article-head p { font-size: 16px; line-height: 24px; }
+.docs-app-shell .docs-article-head > a { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 16px; color: var(--ui-ink); background: var(--ui-surface); border: 1px solid var(--docs-control-border); border-radius: 8px; font-size: 12px; }
+.docs-app-shell .docs-rendered { font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+.docs-app-shell .docs-rendered h2 { font: 700 32px/40px 'Space Grotesk', Inter, sans-serif; margin: 48px 0 16px; }
+.docs-app-shell .docs-rendered h3 { font: 700 24px/32px 'Space Grotesk', Inter, sans-serif; margin: 32px 0 16px; }
+.docs-app-shell .docs-rendered strong { color: var(--ui-ink); }
+.docs-app-shell .docs-rendered a { text-decoration-color: currentColor; }
+.docs-app-shell .docs-rendered blockquote { border-radius: 12px; padding: 24px; border-color: var(--ui-green); }
+.docs-app-shell .docs-rendered table { display: block; overflow-x: auto; border-radius: 12px; font-size: 14px; }
+.docs-app-shell .docs-rendered th { background: var(--ui-surface-soft); }
+.docs-app-shell .docs-rendered td { background: var(--ui-bg); }
+.docs-app-shell .docs-code-wrap { background: transparent; border: 0; box-shadow: none; }
+.docs-app-shell .docs-code-wrap pre { padding: 56px 24px 24px; color: var(--ui-ink); background: var(--ui-surface-soft); border: 1px solid var(--ui-line); border-radius: 12px; font-size: 14px; line-height: 20px; }
+.docs-app-shell .docs-code-wrap pre code { color: inherit; background: transparent; border: 0; }
+.docs-app-shell .docs-copy-code { min-height: 36px; padding: 8px 12px; background: var(--ui-surface); color: var(--ui-ink); border-color: var(--docs-control-border); font: 400 12px/16px var(--font-mono); }
+.docs-app-shell .docs-page-nav { margin-top: 48px; gap: 16px; }
+.docs-app-shell .docs-page-nav a { background: var(--ui-surface); border-color: var(--docs-control-border); border-radius: 12px; padding: 16px; }
+.docs-app-shell .docs-page-nav strong { font-size: 14px; }
+.docs-app-shell .docs-page-nav small { font: 400 12px/16px var(--font-mono); }
+.docs-app-shell :is(.docs-article-head > a, .docs-page-nav a, .docs-copy-code):hover { background: var(--ui-surface-soft); }
+.docs-app-shell :is(a, button, input):focus-visible { outline: 2px solid var(--ui-green); outline-offset: 2px; }
+.docs-app-shell :is(.docs-loading, .docs-load-error, .docs-search-empty) { color: var(--ui-muted); font-size: 14px; }
+.docs-roadmap .docs-rendered > p:first-child { font: 400 12px/16px var(--font-mono); }
+.docs-roadmap-phase { position: relative; padding: 24px 24px 8px; margin: 24px 0 24px 16px; border: 1px solid var(--ui-line); border-radius: 12px; background: var(--ui-surface); }
+.docs-roadmap-phase::before { content: ''; position: absolute; left: -18px; top: 0; bottom: -26px; width: 2px; background: var(--ui-line); }
+.docs-roadmap-phase:last-of-type::before { bottom: 50%; }
+.docs-roadmap-phase::after { content: ''; position: absolute; left: -23px; top: 32px; width: 12px; height: 12px; border: 2px solid var(--ui-muted); border-radius: 50%; background: var(--ui-bg); }
+.docs-roadmap-phase.is-live { border-color: var(--ui-green); }
+.docs-roadmap-phase.is-live::after { border-color: var(--docs-signal); background: var(--docs-signal); }
+.docs-app-shell .docs-roadmap-phase h2 { font-size: 24px; line-height: 32px; margin: 0 0 16px; }
+.docs-app-shell .docs-roadmap-status { display: inline-block; padding: 4px 12px; border: 1px solid var(--docs-control-border); border-radius: 8px; font: 400 12px/16px var(--font-mono); }
+.docs-app-shell .is-live .docs-roadmap-status { background: var(--docs-signal); border-color: var(--docs-signal); }
+.docs-app-shell .is-live .docs-roadmap-status strong { color: #050505; }
+@media (max-width: 900px) {
+  body[data-view='docs'] .docs-app-shell { display: block; }
+  .docs-app-shell .docs-sidebar { padding: 24px 20px; max-height: 320px; }
+  .docs-app-shell .docs-article { width: calc(100% - 64px); padding-top: 32px; }
+}
+@media (max-width: 767px) {
+  .docs-app-shell .docs-article { width: calc(100% - 40px); }
+  .docs-app-shell .docs-article-head { display: block; }
+  .docs-app-shell .docs-article-head > a { margin-top: 24px; }
+  .docs-app-shell .docs-rendered h2 { font-size: 28px; line-height: 36px; }
+  .docs-app-shell .docs-roadmap-phase h2 { font-size: 24px; line-height: 32px; }
+  .docs-roadmap-phase { padding: 16px 16px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(body[data-view='docs']) { scroll-behavior: auto; }
+  .docs-app-shell *, .docs-app-shell *::before, .docs-app-shell *::after { animation: none; transition: none; scroll-behavior: auto; }
+}

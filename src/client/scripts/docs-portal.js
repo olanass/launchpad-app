@@ -39,7 +39,7 @@ function renderDocsSidebar() {
       if (!pages.length) continue;
       groups.push(`<div class='docs-nav-group'><span>${docsEscape(group.group)}</span>${pages.map(slug => {
         const page = data.pages[slug];
-        return `<a href='${docsPageUrl(slug)}' data-doc-slug='${docsEscape(slug)}' class='${slug === docsState.activeSlug ? 'active' : ''}'>${docsEscape(page.title)}</a>`;
+        return `<a href='${docsPageUrl(slug)}' data-doc-slug='${docsEscape(slug)}' ${slug === docsState.activeSlug ? "aria-current='page'" : ''} class='${slug === docsState.activeSlug ? 'active' : ''}'>${docsEscape(page.title)}</a>`;
       }).join('')}</div>`);
     }
   }
@@ -47,6 +47,22 @@ function renderDocsSidebar() {
 }
 
 function enhanceDocsArticle(article) {
+  article.classList.toggle('docs-roadmap', docsState.activeSlug === 'ecosystem/roadmap');
+  if (docsState.activeSlug === 'ecosystem/roadmap') {
+    article.querySelectorAll('.docs-rendered > h2').forEach(heading => {
+      if (!heading.textContent.startsWith('Phase ')) return;
+      const section = document.createElement('section');
+      section.className = 'docs-roadmap-phase';
+      heading.before(section);
+      section.appendChild(heading);
+      while (section.nextElementSibling && section.nextElementSibling.tagName !== 'H2') {
+        section.appendChild(section.nextElementSibling);
+      }
+      const status = section.querySelector('p');
+      status?.classList.add('docs-roadmap-status');
+      section.classList.toggle('is-live', status?.textContent.trim() === 'Live');
+    });
+  }
   article.querySelectorAll('pre').forEach(pre => {
     const wrapper = document.createElement('div');
     wrapper.className = 'docs-code-wrap';
