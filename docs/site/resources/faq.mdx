@@ -1,31 +1,52 @@
 ---
 title: "Frequently asked questions"
-description: "Answers to common questions about Olanas, its token, and content payments."
+description: "Answers for API project builders, AI agents, and their owners."
 ---
 
-<AccordionGroup>
-  <Accordion title="Is the Olanas token live?">
-    Yes. OLANAS was deployed on Robinhood Chain mainnet on September 17, 2026. Verify the token using the full contract address on the [contract and networks page](/token/contract-and-networks).
-  </Accordion>
-  <Accordion title="What network does the application use?">
-    The application supports Robinhood Chain mainnet (`4663`) only. The OLANAS token is deployed on the same network.
-  </Accordion>
-  <Accordion title="Which currencies can buyers use?">
-    Native ETH is supported by default. ERC-20 currencies are available only when the operator configures their verified contract addresses.
-  </Accordion>
-  <Accordion title="Does Olanas hold buyer funds?">
-    In the current implementation, a buyer transfers directly to the creator address in the payment requirement. The application verifies the transaction and reports no facilitator fee.
-  </Accordion>
-  <Accordion title="Can a blockchain payment be reversed?">
-    Usually not. Check every wallet confirmation carefully and contact the creator directly about any refund request.
-  </Accordion>
-  <Accordion title="Is this a standard x402 facilitator?">
-    No certification or drop-in compatibility is claimed. The application uses a custom HTTP 402 challenge and payment-proof format inspired by x402.
-  </Accordion>
-  <Accordion title="Are testnet assets valuable?">
-    No. Testnet assets have no monetary value and must not be sold or represented as mainnet assets.
-  </Accordion>
-  <Accordion title="Where is the official contract address?">
-    The canonical address is [`0x9400eB66B1320050A68F25A624985a674F033902`](https://robinhoodchain.blockscout.com/token/0x9400eB66B1320050A68F25A624985a674F033902). The [contract and networks page](/token/contract-and-networks) includes verification and deployment details.
-  </Accordion>
-</AccordionGroup>
+## What is Olanas?
+
+Olanas is an x402 launchpad for paid API projects. Builders publish existing endpoints; AI agents discover services, prepare requests, authorize payments, and receive API results.
+
+## Does Olanas host my API?
+
+You host and operate the API. Olanas provides the public listing, paid gateway, discovery, payment verification, and request forwarding.
+
+## How do agents find my project?
+
+Live listings appear in Explore, the `/discovery/resources` catalog, and the remote MCP `search_apis` tool. A clear description and accurate OpenAPI schema help agents understand when and how to use the service.
+
+## Can agents pay automatically?
+
+The website's remote MCP tools do not hold keys or send transfers. An agent can prepare a human-approved order, or use the separate local wallet companion with an owner-enabled, bounded spending session. See [AI agents and MCP](/developers/agents).
+
+## What assets can an API accept?
+
+The current mainnet configuration includes ETH, USDG, and OLANAS. Additional configured ERC-20 assets may be available. Each listing chooses its currency, and the order quote specifies what the buyer must pay. ETH is also needed for network fees.
+
+## Do I need OLANAS to use every API?
+
+No. The listing's selected currency determines the payment asset. OLANAS is one supported option; it is not a universal access requirement.
+
+## Which networks are supported?
+
+The application currently supports Robinhood Chain mainnet, chain ID `4663`. Base and Solana are roadmap targets, not selectable production networks.
+
+## What happens if I pay but the API returns an error?
+
+Payment and delivery are separate. A durable order saves the API response, including HTTP errors. Inspect that result and the original payment before taking further action; reading or reconciling the order does not create a replacement purchase. Unknown delivery requires investigation because the upstream may already have executed.
+
+## Can I recover a result after closing the page?
+
+Durable orders store responses for retrieval with the original order ID and private access token. Keep those credentials. Do not create a new order merely to recover an existing result.
+
+## Is every x402 client compatible?
+
+Clients must support Olanas's `onchain-tx` confirmed-transfer scheme. The application exposes x402 v2-shaped discovery and challenges, but it is not the standard `exact` settlement implementation.
+
+## What is Sell files?
+
+A separate workflow for selling a downloadable file or text through a payment link. It complements the API launchpad. [Read the file guide](/ecosystem/content-payments).
+
+## Are the planned integrations already available?
+
+The [roadmap](/ecosystem/roadmap) distinguishes current capabilities from expansion plans. Naming PayAI, Coinbase, or Cloudflare as a target does not announce a live integration or partnership.

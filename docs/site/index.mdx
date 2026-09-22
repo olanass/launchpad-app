@@ -1,50 +1,49 @@
 ---
 title: "Welcome to Olanas"
-description: "Learn about the Olanas ecosystem, token, content payments, and developer platform."
+description: "The x402 launchpad for projects publishing paid APIs and AI agents using them."
 ---
 
-Olanas is building infrastructure for direct, onchain digital-content payments. These docs explain the ecosystem, the deployed OLANAS token, and the technology behind the product.
+Olanas is an **x402 API launchpad**. Projects publish their APIs on Olanas, choose a price per request, and make them discoverable to AI agents. Agents find a service, inspect its inputs and price, authorize payment, and receive the API result.
 
-<Info>
-  OLANAS is deployed on Robinhood Chain at [`0x9400eB66B1320050A68F25A624985a674F033902`](https://robinhoodchain.blockscout.com/token/0x9400eB66B1320050A68F25A624985a674F033902). Verify the full address on the [contract and networks page](/token/contract-and-networks) before interacting.
-</Info>
+**Publish an API. Get discovered. Get paid when it is used.**
 
-<Columns cols={2}>
-  <Card title="Understand Olanas" icon="compass" href="/getting-started/overview">
-    Start with the product, its users, and the role of onchain payments.
-  </Card>
-  <Card title="Explore the token" icon="coins" href="/token/overview">
-    Review the publication status of token utility, supply, and distribution.
-  </Card>
-  <Card title="Stay safe" icon="shield-check" href="/security/staying-safe">
-    Learn how to verify contracts, links, wallets, and transactions.
-  </Card>
-  <Card title="Build with Olanas" icon="code-2" href="/developers/overview">
-    Explore the Robinhood Chain payment flow and developer interfaces.
-  </Card>
-</Columns>
+## For project builders
 
-## What you can find here
+Bring an existing HTTP API to **Launch API** on [the Olanas website](https://olanas.xyz). Add your project details, endpoint, supported methods, payment currency, and price. Sign the listing with your wallet.
 
-- **Product guides** for creators and buyers using content paywalls.
-- **Token documentation** covering utility, tokenomics, contracts, and governance.
-- **Developer documentation** for the HTTP 402-inspired payment flow.
-- **Trust resources** covering audits, risks, and common scams.
+Olanas provides the public listing, paid gateway, discovery metadata, and payment verification. Your project continues to host and operate the API.
 
-<Note>
-  Pages containing unconfirmed project data show a clear **Not yet published** status. Replace those markers only with information approved by the Olanas team and verified onchain.
-</Note>
+[Launch your first API](/getting-started/quickstart)
 
-## Recommended reading
+## For AI agents and their owners
 
-<Steps>
-  <Step title="Learn the product">
-    Read [What is Olanas?](/getting-started/overview) to understand the intended ecosystem.
-  </Step>
-  <Step title="Check token status">
-    Visit [Contract and networks](/token/contract-and-networks) before interacting with any token.
-  </Step>
-  <Step title="Understand the risks">
-    Review [Staying safe](/security/staying-safe) and the [disclaimer](/legal/disclaimer).
-  </Step>
-</Steps>
+Agents discover live services through the catalog or MCP, inspect the request schema, and prepare a paid request. The owner can approve an order in a browser, or enable a bounded spending session in the local wallet companion.
+
+Payment is verified before Olanas forwards the request to the project's endpoint. The durable-order flow saves the result so the agent can retrieve it without buying the same request again.
+
+[Connect an agent](/developers/agents)
+
+## The request lifecycle
+
+| Step | What happens |
+| --- | --- |
+| Discover | Find a live API and inspect its inputs, methods, and price. |
+| Request | Prepare the exact API operation and receive its payment requirement or order quote. |
+| Pay | An authorized wallet sends the required asset to the project's payout address. |
+| Receive | Olanas verifies payment, calls the API, and returns the result. |
+
+## Start here
+
+- [What is Olanas?](/getting-started/overview): understand the launchpad and its users.
+- [Quickstart](/getting-started/quickstart): publish an API or make a paid request.
+- [Payment flow](/developers/payment-flow): learn approval, execution, and recovery.
+- [Endpoint reference](/developers/endpoints): integrate through HTTP or MCP.
+- [Roadmap](/ecosystem/roadmap): see the next stages of the ecosystem.
+
+## Network and payment support
+
+The application currently supports **Robinhood Chain mainnet, chain ID 4663**. ETH, USDG, and OLANAS are configured payment assets; each API listing specifies the currency it accepts. Additional assets depend on the deployment configuration. Check the [network reference](/developers/network) and the actual quote before paying.
+
+The current payment implementation uses x402 v2-shaped challenges with the `onchain-tx` scheme for confirmed transfers. Integrations must support that scheme; support for another x402 scheme does not automatically make a client compatible.
+
+**Sell files** is also available for paid downloads. It is a separate workflow from publishing and calling APIs; see [Sell files](/ecosystem/content-payments).

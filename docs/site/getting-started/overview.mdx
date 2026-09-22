@@ -1,44 +1,46 @@
 ---
 title: "What is Olanas?"
-description: "An introduction to the Olanas content-payment ecosystem."
+description: "A launchpad connecting API projects with AI agents and pay-per-request usage."
 ---
 
-Olanas is a creator-to-buyer content payment experience built around verifiable onchain transfers. A creator can publish encrypted content behind a paywall, share its link, and deliver the content after the application confirms payment.
+Olanas helps projects turn existing APIs into paid services that humans and AI agents can discover and use. Builders keep running their own endpoints, while Olanas supplies the listing, discovery interface, payment requirement, verification, and request delivery.
 
-## The problem
+## Who uses Olanas?
 
-Digital creators often depend on platforms that control checkout, custody, distribution, and account access. Olanas explores a more direct model in which:
+| User | What they do |
+| --- | --- |
+| API project builders | Publish an endpoint, describe its inputs, choose a price, and receive payments. |
+| AI agents | Discover services, prepare requests, and retrieve results through MCP or HTTP. |
+| Agent owners | Approve individual purchases or configure bounded local-wallet spending sessions. |
 
-- creators choose the content and price;
-- buyers pay from a compatible wallet;
-- payments go directly to the creator's configured address; and
-- the application verifies the transfer before releasing encrypted content.
+Examples of useful projects include market data, onchain data, research, and document processing APIs. These are use cases, not a promise that a particular service is listed.
 
-## Who it is for
+## What a project launches
 
-<Columns cols={2}>
-  <Card title="Creators" icon="pen-tool">
-    Publish files or text, set a price, sign the listing, and share a paywall link.
-  </Card>
-  <Card title="Buyers" icon="shopping-bag">
-    Review the payment requirement, approve an onchain transfer, and unlock the purchased content.
-  </Card>
-  <Card title="Developers" icon="braces">
-    Integrate with the verification and settlement interfaces or study the HTTP 402-style flow.
-  </Card>
-  <Card title="Community" icon="users">
-    Help shape documented governance once the team publishes the governance framework.
-  </Card>
-</Columns>
+A listing includes a name, description, category, allowed HTTP methods, price, currency, and payout address. It can also include a logo, demo video, and OpenAPI document.
 
-## Current implementation
+The published gateway has the form `/x402/:slug`. Public metadata exposes this gateway instead of the configured upstream endpoint. Keeping an endpoint out of the catalog is not a substitute for securing the project's own server.
 
-The repository currently contains a Node.js content-paywall application targeting Robinhood Chain mainnet. It supports native ETH by default and can support explicitly configured ERC-20 contracts.
+## What Olanas does
 
-<Info>
-  The current payment proof is a project-specific HTTP 402-inspired format. It must not be described as a certified or drop-in implementation of the x402 standard.
-</Info>
+- Makes live listings searchable in Explore and available through machine-readable discovery.
+- Exposes MCP tools for discovery, request preparation, order status, and payment-proof calls.
+- Binds a durable order to a specific request and quoted payment.
+- Checks confirmed onchain payments before executing paid requests.
+- Stores durable-order responses and records usage and payment information.
 
-## Where the token fits
+## What the project operates
 
-The token section is prepared for the team's approved utility, tokenomics, deployment, and governance information. Until those details are published, the application and the proposed token should be evaluated separately.
+The builder hosts the API, maintains its uptime, defines its input and output contract, and handles the service's own data and behavior. Olanas does not deploy the project's source code or guarantee the correctness of third-party results.
+
+## Two ways to authorize agent payments
+
+**Human-approved orders:** an agent prepares an order and gives its owner a private approval link. The owner reviews the request and quote, signs approval, and confirms payment.
+
+**Local wallet companion:** the owner enables a session with spending limits and allowed services. The local signer can approve eligible purchases within that policy. The website's remote MCP endpoint alone cannot sign payments.
+
+See [AI agents and MCP](/developers/agents) for setup and recovery rules.
+
+## Related features
+
+[Sell files](/ecosystem/content-payments) provides payment links for downloadable files or text. The [OLANAS token](/token/utility) is a supported API payment option when selected by the project. Neither file sales nor token ownership is required to publish a listing priced in another supported asset.

@@ -1,30 +1,22 @@
 ---
 title: "Token utility"
-description: "How token utility claims will be documented and verified."
+description: "How OLANAS is supported as a payment asset in the API launchpad."
 ---
 
-<Info>
-  **Status: proposed utility has not been approved for publication.** This page separates implemented functionality from future concepts.
-</Info>
+## API payments
 
-## Utility status
+The application configures OLANAS as a supported ERC-20 payment asset on Robinhood Chain mainnet. A project can price its API in OLANAS; a buyer of that listing pays the quoted OLANAS amount to the project's payout address.
 
-| Capability | Status | Verification |
-| --- | --- | --- |
-| Content-payment currency | Not announced | Contract and application configuration |
-| Governance participation | Not announced | Governance contracts and published process |
-| Creator incentives | Not announced | Program rules and distribution addresses |
-| Fee discounts | Not announced | Production application behavior |
-| Staking or rewards | Not announced | Audited contracts and reward source |
+OLANAS has 18 configured decimals and the contract address `0x9400eB66B1320050A68F25A624985a674F033902`. See [Contract and networks](/token/contract-and-networks) for token reference information.
 
-## Documentation rule
+## What buyers need
 
-A utility should move from **Not announced** to **Available** only when users can use it in production and the docs link to a verifiable interface or contract. Planned features should be labeled **Planned**, with no promise of delivery date or financial return.
+The API's listing and quote determine which currency is accepted. Olanas also supports ETH and USDG, with other assets depending on deployment configuration. Holding OLANAS is not required for an API priced in another currency.
 
-## Current payment assets
+A wallet paying an ERC-20 token also needs native ETH for transaction fees on Robinhood Chain.
 
-The existing content-paywall implementation supports native ETH by default. Additional ERC-20 assets are available only when administrators explicitly configure verified contract addresses. That behavior does not establish utility for an Olanas token.
+## Scope of current utility
 
-<Warning>
-  Do not purchase a token solely because an unofficial source claims it will receive future utility, rewards, listings, or price support.
-</Warning>
+API payment support is implemented in the shared network configuration and payment verification flow. It does not by itself establish staking, rewards, fee discounts, voting rights, or revenue sharing. Those features are not implemented by selecting OLANAS as a payment currency.
+
+The [roadmap](/ecosystem/roadmap) describes the token's place in the planned ecosystem expansion; future capabilities remain separate from current payment support.

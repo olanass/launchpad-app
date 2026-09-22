@@ -1,51 +1,60 @@
 ---
 title: "Application architecture"
-description: "Runtime boundaries, modules, persistence, and testing for the Olanas application."
+description: "How the API launchpad, MCP tools, orders, and payment verification fit together."
 ---
 
-# Application architecture
+## Runtime
 
-The application is a single Node.js service with a static browser client. The organization reflects runtime responsibilities rather than pretending each folder is an independent npm package.
+The website uses a Next.js application shell with browser feature scripts and an Express backend. `server.js` prepares Next and mounts the backend locally. Vercel routes API requests through the serverless entry in `pages/api/[[...path]].js`.
 
-## Runtime flow
+The browser provides Launch API, Explore, Pay & run, My projects, Sell files, and Docs. Projects host their own API implementations outside this application.
 
-1. `src/server/index.js` loads local environment values and starts the HTTP server.
-2. `src/server/app.js` composes the API routers and serves `src/client`.
-3. The browser client creates signed paywall listings and submits them to the paywall API.
-4. Content is encrypted before it is persisted under the configured data directory.
-5. Download requests pass through payment verification and redemption tracking before content is decrypted.
+## API request path
+
+1. A creator signs a listing for an existing endpoint.
+2. The service catalog stores its public metadata, pricing, schema, and private upstream configuration.
+3. An agent discovers the service through MCP or HTTP.
+4. A durable order binds a request to a versioned quote and approval.
+5. The verifier checks the submitted Robinhood Chain transaction.
+6. The order engine calls the upstream endpoint and saves the response.
+7. The agent reads the original order to retrieve its result.
+
+The direct `/x402/:slug` gateway is a separate proof-based integration path. See [Payment flow](/developers/payment-flow) for its different retry behavior.
 
 ## Server modules
 
-- `agent`: demo agent client and its allowlisted runner endpoint.
-- `auth`: public Privy configuration and retired legacy endpoints.
-- `config`: environment loading, shared filesystem paths, and chain configuration.
-- `demo`: demo-only monetized endpoints.
-- `facilitator`: amount parsing, verification, settlement, receipts, and analytics.
-- `middleware`: reusable HTTP 402 request handling.
-- `paywall`: listing creation, metadata lookup, and protected downloads.
-- `vault`: encrypted local storage and optional IPFS pinning.
+| Module | Responsibility |
+| --- | --- |
+| `services` | Signed listings, discovery, OpenAPI, endpoint checks, proxying, and catalog storage. |
+| `orders` | Quotes, request validation, approvals, submitted payments, execution, and saved results. |
+| `mcp` | Remote discovery, order, balance, requirement, call, and receipt tools. |
+| `facilitator` | Amount parsing, confirmed-transfer verification, settlement, and replay protection. |
+| `auth` | Public wallet-login configuration. |
+| `config` | Mainnet configuration, environment loading, and paths. |
+| `paywall` and `vault` | Separate encrypted file/text listings and paid downloads. |
 
-`src/server/config/paths.js` owns project, client, and data paths. Feature modules should not calculate paths relative to their own source directories.
+## Persistence and credentials
 
-`ROBINHOOD_NETWORK` accepts only `mainnet` (chain ID `4663`). `/api/privy/config` exposes this single network to wallet connections and checkout. Unsupported network settings fail at startup. Local data uses `X402_DATA_DIR` or `uploads`.
+Catalog data, order state, receipts, and analytics use libSQL/Turso-backed storage. Production requires the configured durable database. File-paywall assets use encrypted storage and optional ciphertext-only IPFS pinning; those storage requirements are separate from the API catalog.
 
-## Client modules
+Order access tokens are private bearer credentials. Database records store their hashes. Clients must retain the original token to recover private order results.
 
-- `assets`: images and icons copied as static files.
-- `integrations`: source code for third-party browser integrations.
-- `generated`: build output; never edit or commit it.
-- `scripts`: browser behavior split into navigation, network, wallet, creator, checkout, and dashboard responsibilities.
-- `styles`: ordered design-system, feature, dialog, and responsive styles loaded by `app.css`.
+The local wallet companion is a separate runtime. It holds its encrypted wallet and spending-session policy locally; the website receives signatures and transaction proofs, not the wallet key.
 
-The browser application remains framework-light. Keep shared state and startup wiring in `scripts/app.js`; feature behavior belongs in the matching responsibility file.
+## Documentation build
 
-## Tests
+Source pages live in `docs/site`. The build generates the browser content bundle, Markdown downloads, and `/llms.txt`. Edit source pages rather than generated files.
 
-`tests/regression.test.js` runs without a live chain or funded wallet. Test names are grouped by `production:`, `handshake:`, `paywall:`, and `browser:` prefixes, with matching npm scripts.
+The Markdown homepage is published at `/docs/home.md` so it cannot shadow the HTML interface at `/docs`.
 
-`tests/smoke/verify-link.js` checks a running deployment and requires a paywall ID.
+## Local development
 
-## Persistent data
+```sh
+npm ci
+npm run build:assets
+npm run dev
+```
 
-The default data directory remains `<project>/uploads`. Set `X402_DATA_DIR` to use another absolute or relative location. Back up the encrypted assets and the configured vault secret together.
+The local website runs at `http://localhost:4020`. It is configured for mainnet; use the isolated automated tests for non-spending integration checks.
+
+Run `npm test` for API, payment, and order regressions. Run `npm run build` for production assets and Next output. Automated tests do not prove live wallet interoperability or third-party endpoint reliability.

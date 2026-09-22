@@ -1,58 +1,56 @@
 ---
-title: "Developer overview"
-description: "Architecture and integration entry point for the Olanas API launchpad and content-payment application."
+title: "Publish an API"
+description: "Prepare an existing endpoint for paid discovery and requests through Olanas."
 ---
 
-The Olanas repository contains a framework-light browser client and a Node.js server for launching paid APIs, creating encrypted paywalls, and verifying onchain transfers.
+Olanas wraps your existing API with a paid gateway. You operate the upstream service; Olanas handles its public listing, discovery, payment verification, and forwarding of authorized requests.
 
-## Core capabilities
+## Prepare the endpoint
 
-<Columns cols={2}>
-  <Card title="Signed listings" icon="signature">
-    Creator wallets sign the exact listing content before creation.
-  </Card>
-  <Card title="Encrypted delivery" icon="lock-keyhole">
-    Content is encrypted at rest and decrypted only after payment verification.
-  </Card>
-  <Card title="Onchain verification" icon="badge-check">
-    The server validates the chain, receipt, recipient, asset, amount, and payer.
-  </Card>
-  <Card title="Replay control" icon="rotate-ccw">
-    A proof can recover the same purchase but cannot buy a different requirement.
-  </Card>
-  <Card title="Paid API gateway" icon="route">
-    Developers publish an existing public endpoint behind a protected `/x402/:slug` route.
-  </Card>
-  <Card title="Public discovery" icon="search">
-    Live services expose x402 v2-shaped discovery metadata, pricing, and supported methods.
-  </Card>
-</Columns>
+Provide a complete HTTP or HTTPS URL reachable from the Olanas server. The endpoint may be a base URL or a full operation URL. Loopback, private, link-local, and reserved destinations are rejected, including through DNS resolution and redirects.
 
-## Runtime
+For example, a request for `/api/score` against `https://api.example.com` targets `https://api.example.com/api/score`. If the configured endpoint already ends in `/api/score`, that operation path is used once. Other relative paths are appended under the configured base path.
 
-- Node.js 22 or newer
-- Express 5
-- ethers 6
-- Static browser client with optional Privy integration
-- Local encrypted storage with optional ciphertext-only IPFS pinning
-- libSQL locally and Turso-backed durable launchpad storage in production
+These example URLs are illustrative, not live services.
 
-## Launch an API
+## Create the listing
 
-Connect a creator wallet, provide a public HTTP or HTTPS endpoint, choose the allowed methods, and set a per-request price. The endpoint itself remains private in public responses. The creator signature binds the exact listing fields, and signed management actions can pause, resume, update, or delete the listing.
+Use **Launch API** on [Olanas](https://olanas.xyz). The listing contains:
 
-The launchpad validates endpoint DNS results and rejects loopback, private, link-local, and reserved destinations. Successful paid calls update durable public analytics. Failed upstream responses do not count as revenue and allow the same payment proof to retry.
+| Field | Purpose |
+| --- | --- |
+| Name, description, category | Help users and agents find and understand the project. |
+| Endpoint URL | The upstream service Olanas calls after payment verification. |
+| Allowed methods | Any supported selection of GET, POST, PUT, PATCH, and DELETE. |
+| Price and currency | The charge for a paid request. |
+| Creator and payout address | The owner who signs changes and the recipient of payments. The website uses the creator wallet for both. |
+| Logo and video | Optional project presentation. |
+| OpenAPI document | Optional operation and input contract for clients and agents. |
 
-## Start locally
+The creation signature binds the listing fields, endpoint, pricing, addresses, network, timestamp, and uploaded asset/schema hashes. The HTTP creation endpoint is `POST /api/services`; the website constructs the signed payload for you.
 
-```powershell
-npm ci
-npm test
-npm run dev
-```
+## Describe inputs with OpenAPI
 
-This starts the mainnet-configured application at `http://localhost:4020`.
+Upload OpenAPI 3.0 or 3.1 JSON, up to 256 KB. Describe the operation paths, required parameters, and request-body schema accurately.
 
-<Warning>
-  Use the isolated test suite while integrating. Live calls on mainnet spend real funds. The test suite uses mocked providers and is not a substitute for live end-to-end validation.
-</Warning>
+The public document at `/api/services/:slug/openapi.json` points clients at the Olanas gateway. `get_api_details` exposes the input contract to MCP clients. Orders validate supported request-body schemas and required query parameters before purchase. Without a published schema, agents cannot infer your required fields reliably; the upstream API remains responsible for its own validation.
+
+Do not put credentials or private information in public descriptions or schemas.
+
+## Discovery and use
+
+Live listings are available through Explore, `/discovery/resources`, and `search_apis`. A listing exposes a gateway URL such as `https://olanas.xyz/x402/your-service`.
+
+Agents can use durable orders for approval and saved results, or integrations can use the direct gateway's payment-proof exchange. See [Payment flow](/developers/payment-flow).
+
+## Manage your project
+
+Signed management requests can update a listing, pause or resume it, or delete it. Use **My projects** or the [management endpoints](/developers/endpoints). Price and endpoint changes apply to new purchases; already-approved orders retain their quoted terms.
+
+Public statistics help inspect usage and recorded outcomes. A paid request is not proof that the service returned a useful or successful result.
+
+## Operate reliably
+
+Maintain your endpoint's uptime and validate its inputs. For operations with side effects, implement idempotency: durable orders forward an `Idempotency-Key` containing the order ID. Olanas cannot guarantee exactly-once execution inside an arbitrary third-party API.
+
+An unpublished upstream address is not access control. Protect your own endpoint against unwanted direct use as appropriate for your hosting setup.

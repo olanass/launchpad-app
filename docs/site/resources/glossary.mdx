@@ -1,40 +1,29 @@
 ---
 title: "Glossary"
-description: "Plain-language definitions for Olanas and onchain payments."
+description: "The terms used when publishing and consuming paid APIs on Olanas."
 ---
 
-<AccordionGroup>
-  <Accordion title="Block explorer">
-    A website for inspecting transactions, addresses, tokens, and contracts recorded on a blockchain.
-  </Accordion>
-  <Accordion title="Chain ID">
-    A number wallets and applications use to distinguish one EVM-compatible network from another.
-  </Accordion>
-  <Accordion title="Contract address">
-    The unique onchain address of a smart contract on a particular network. Names and symbols are not unique; the address is the important identifier.
-  </Accordion>
-  <Accordion title="ERC-20">
-    A common interface for fungible tokens on EVM-compatible networks.
-  </Accordion>
-  <Accordion title="HTTP 402">
-    An HTTP status code named “Payment Required.” Olanas uses it as part of a project-specific payment challenge flow.
-  </Accordion>
-  <Accordion title="Mainnet">
-    A production blockchain network where assets can have real value.
-  </Accordion>
-  <Accordion title="Payment proof">
-    Data submitted to the server so it can locate and validate an onchain payment. The current proof includes a transaction hash and payer address.
-  </Accordion>
-  <Accordion title="Testnet">
-    A development network that uses assets with no monetary value.
-  </Accordion>
-  <Accordion title="Transaction hash">
-    A unique identifier used to look up an onchain transaction.
-  </Accordion>
-  <Accordion title="Vesting">
-    A schedule that releases an allocation over time instead of making it transferable immediately.
-  </Accordion>
-  <Accordion title="Wallet signature">
-    A cryptographic approval produced by a wallet. A signature can authenticate a listing or authorize other actions; always read the request before signing.
-  </Accordion>
-</AccordionGroup>
+| Term | Meaning |
+| --- | --- |
+| API project | A builder-operated service listed on Olanas with an endpoint, description, and price. |
+| Agent | Software that discovers tools and prepares requests on behalf of a user. Payment requires an authorized wallet or policy. |
+| Slug | The listing identifier used in its public gateway URL. |
+| Gateway | The Olanas route that verifies payment before forwarding a request to the project's endpoint. |
+| Upstream endpoint | The API server hosted and operated by the project. |
+| Discovery | The searchable catalog and metadata agents use to find APIs. |
+| OpenAPI | A machine-readable description of API operations, parameters, and request/response schemas. |
+| MCP | Model Context Protocol: the interface through which agent clients access Olanas tools. |
+| HTTP 402 | Payment Required: the status returned when a paid route needs payment proof. |
+| Payment requirement | The network, asset, amount, and recipient required for a paid request. |
+| onchain-tx | Olanas's payment scheme that verifies an already-confirmed blockchain transfer. |
+| Durable order | A stored purchase containing the request, quote, approval, payment state, and eventual result. |
+| Quote | A versioned snapshot of a purchase's payment and service terms. |
+| Access token | A private bearer credential used to access an order. Keep it out of public links and logs. |
+| Request ID | A client identifier retained across retries of the same intended purchase. |
+| Reconciliation | Checking the original submitted payment and completing eligible order processing without signing a new transfer. |
+| Idempotency | Handling repeated attempts as the same operation rather than duplicating its effects. |
+| Payout address | The project's wallet address that receives the required payment. |
+| Gas | The network fee paid in native ETH on Robinhood Chain. |
+| Chain ID | The network identifier. The current application uses `4663`. |
+| Transaction hash | The identifier of a submitted blockchain transaction. |
+| Wallet signature | Cryptographic approval; signing an order and transferring payment are distinct actions. |

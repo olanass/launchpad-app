@@ -1,38 +1,18 @@
 ---
-title: "Governance"
-description: "Governance status and the disclosure framework for future Olanas decisions."
+title: "Governance status"
+description: "The boundary between the operating API launchpad and future token governance."
 ---
 
-<Info>
-  **Status: no token governance process is documented as active.** Do not rely on unofficial votes or proposals.
-</Info>
+The current launchpad implements wallet-signed management of API listings and owner-approved payments. Those controls are product permissions, not token governance.
 
-## Before governance launches
+## What owners control today
 
-Olanas should publish:
+Project creators sign listing creation and supported management actions. Agent owners approve website orders or configure local spending sessions.
 
-- who can create proposals;
-- which decisions are in and out of scope;
-- proposal, voting, quorum, and approval thresholds;
-- voting-power calculation and delegation rules;
-- timelock and emergency-cancellation controls;
-- the execution process and responsible contracts;
-- conflict-of-interest and treasury policies; and
-- a clear transition path from team-led to community-led decisions.
+Holding OLANAS does not by itself grant control over another project's API, payout address, or orders.
 
-## Suggested proposal lifecycle
+## Token governance
 
-```mermaid
-flowchart LR
-  A[Community discussion] --> B[Formal proposal]
-  B --> C[Review period]
-  C --> D[Onchain vote]
-  D --> E{Approved?}
-  E -- Yes --> F[Timelock]
-  F --> G[Execution]
-  E -- No --> H[Closed]
-```
+No active token voting or proposal-execution system is documented in the current application. If governance is introduced, its scope, eligibility, voting rules, execution contracts, and safeguards need to be published separately.
 
-## Governance safety
-
-High-impact actions should use transparent onchain execution, a published timelock, and a multisig or equivalent safeguard. Emergency powers should be narrow, observable, and time-limited.
+See [Token utility](/token/utility) for current payment support and [Roadmap](/ecosystem/roadmap) for product direction.

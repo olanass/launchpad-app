@@ -27,6 +27,29 @@ description: "A concise reference for the Olanas API launchpad, content-paywall,
 | `GET` | `/llms.txt` | Combined AI-readable product and developer documentation |
 | `GET` | `/docs/:page.md` | Raw Markdown for one documentation page |
 
+The Markdown homepage is `/docs/home.md`; `/docs` serves the browser interface. Remote MCP tools are listed in [AI agents and MCP](/developers/agents).
+
+## Durable API orders
+
+Private order routes use `Authorization: Bearer <accessToken>`. Generate and retain a random access token and stable request ID before creation. Do not place the bearer token in a public URL or log.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/orders/network` | Public network and payment-asset configuration |
+| `POST` | `/api/orders` | Prepare one request and its quote |
+| `GET` | `/api/orders/:id` | Read private status and saved result |
+| `POST` | `/api/orders/:id/approval-message` | Obtain the canonical message for the proposed payer |
+| `POST` | `/api/orders/:id/approve` | Submit the wallet's order approval signature |
+| `POST` | `/api/orders/:id/payment` | Attach the original submitted transaction hash |
+| `POST` | `/api/orders/:id/reconcile` | Verify that payment and finish eligible execution |
+| `POST` | `/api/orders/:id/reject` | Reject a request through the review flow |
+| `POST` | `/api/orders/:id/refresh` | Refresh an eligible quote |
+| `POST` | `/api/orders/:id/reopen` | Explicitly reopen an eligible rejected order |
+| `POST` | `/api/orders/:id/cancellation-message` | Obtain a message for cancelling an unpaid approval |
+| `POST` | `/api/orders/:id/cancel-approval` | Submit the approving wallet's cancellation assertion |
+
+Creation, approval, payment submission, and execution are separate operations. State restrictions apply; a submitted transaction cannot be replaced by calling these endpoints. See [Payment flow](/developers/payment-flow).
+
 ## Paywalls
 
 | Method | Path | Purpose |
@@ -52,6 +75,7 @@ description: "A concise reference for the Olanas API launchpad, content-paywall,
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/privy/config` | Return public login and selected-network configuration |
+| `GET` | `/api/services/networks` | List enabled launchpad networks and payment currencies |
 
 <Note>
   Legacy email-only wallet creation routes return `410`. An email address is not authentication, and the application does not invent wallet addresses.
@@ -59,4 +83,4 @@ description: "A concise reference for the Olanas API launchpad, content-paywall,
 
 ## Production storage
 
-The API catalog, logos, receipt reservations, payment redemptions, and usage analytics use Turso in production. Configure `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` before deploying the launchpad.
+The API catalog, orders, saved results, logos, receipt reservations, payment redemptions, and usage analytics use durable database storage. Configure `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` before deploying the launchpad.

@@ -25,7 +25,9 @@ The API launchpad defaults to Global Dollar (`USDG`) on Robinhood Chain:
 | Decimals | `6` |
 | Contract | [`0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168`](https://robinhoodchain.blockscout.com/token/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168) |
 
-Native ETH remains available. Other ERC-20 assets appear only when their verified network-scoped contract addresses are configured.
+Native ETH and OLANAS are also configured. OLANAS uses 18 decimals and contract `0x9400eB66B1320050A68F25A624985a674F033902`. Each listing selects its payment currency; buyers also need ETH for network fees.
+
+Other ERC-20 assets appear only when their network-scoped contract addresses are configured. Read `GET /api/services/networks` for the deployment's current options and the actual order quote for the asset, amount, and recipient of a purchase.
 
 ## Storage
 

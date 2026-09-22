@@ -2,11 +2,11 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "palm",
   "name": "Olanas",
-  "description": "Official documentation for the Olanas ecosystem and token.",
+  "description": "Publish paid APIs on Olanas. AI agents discover services, prepare requests, pay, and retrieve results.",
   "colors": {
-    "primary": "#059669",
-    "light": "#10B981",
-    "dark": "#047857"
+    "primary": "#00823F",
+    "light": "#00D96B",
+    "dark": "#00823F"
   },
   "favicon": "/images/favicon.svg",
   "logo": {
@@ -22,12 +22,11 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Olanas",
-        "icon": "sparkles",
+        "tab": "Documentation",
+        "icon": "book-open",
         "groups": [
           {
             "group": "Start here",
-            "icon": "rocket",
             "pages": [
               "index",
               "getting-started/overview",
@@ -35,63 +34,46 @@
             ]
           },
           {
-            "group": "Olanas token",
-            "icon": "coins",
+            "group": "API builders and agents",
             "pages": [
-              "token/overview",
-              "token/tokenomics",
-              "token/utility",
-              "token/contract-and-networks"
+              "developers/overview",
+              "developers/agents",
+              "developers/payment-flow",
+              "developers/endpoints",
+              "developers/network"
             ]
           },
           {
-            "group": "Ecosystem",
-            "icon": "globe",
+            "group": "Product and roadmap",
             "pages": [
-              "ecosystem/content-payments",
               "ecosystem/roadmap",
-              "ecosystem/governance"
+              "ecosystem/content-payments"
             ]
           },
           {
-            "group": "Safety and trust",
-            "icon": "shield-check",
+            "group": "Architecture and safety",
             "pages": [
+              "architecture",
               "security/staying-safe",
               "security/audits"
             ]
           },
           {
+            "group": "OLANAS token",
+            "pages": [
+              "token/overview",
+              "token/utility",
+              "token/contract-and-networks",
+              "token/tokenomics",
+              "ecosystem/governance"
+            ]
+          },
+          {
             "group": "Resources",
-            "icon": "book-open",
             "pages": [
               "resources/faq",
               "resources/glossary",
               "legal/disclaimer"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Developers",
-        "icon": "code-2",
-        "groups": [
-          {
-            "group": "Build with Olanas",
-            "icon": "terminal",
-            "pages": [
-              "developers/overview",
-              "developers/network",
-              "developers/payment-flow",
-              "developers/agents",
-              "developers/endpoints"
-            ]
-          },
-          {
-            "group": "Internals",
-            "icon": "blocks",
-            "pages": [
-              "architecture"
             ]
           }
         ]

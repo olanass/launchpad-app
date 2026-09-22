@@ -1,45 +1,34 @@
 ---
-title: "Content payments"
-description: "How Olanas protects content and verifies direct onchain payments."
+title: "Sell files"
+description: "An additional Olanas workflow for paid file and text downloads."
 ---
 
-The current Olanas application is a non-custodial-style content paywall: buyers transfer funds directly to the creator address specified by the listing, and the server verifies the transaction before delivering content.
+Alongside the API launchpad, Olanas provides **Sell files** for creators who want to sell a downloadable file or text through a payment link.
 
-## Payment lifecycle
+An API listing calls your hosted service with a buyer's input. A file listing delivers content that you uploaded in advance.
 
-```mermaid
-sequenceDiagram
-  participant C as Creator
-  participant O as Olanas
-  participant B as Buyer
-  participant R as Robinhood Chain
-  C->>O: Upload content and sign listing
-  O->>O: Encrypt and store content
-  B->>O: Request protected download
-  O-->>B: HTTP 402 payment requirement
-  B->>R: Send exact onchain transfer
-  B->>O: Submit transaction hash and payer
-  O->>R: Verify recipient, asset, amount, and success
-  O-->>B: Deliver decrypted content
-```
+## Create a file listing
 
-## Verification rules
+1. Open **Sell files** on [Olanas](https://olanas.xyz).
+2. Choose a file or paste the text buyers should receive. If a file is selected, it takes precedence over the text.
+3. Add the listing title, price, currency, and optional description.
+4. Review the listing preview, connect your wallet, and sign the creation message.
+5. Save and share the generated payment link.
 
-- The network must match the listing requirement.
-- The transaction must be successfully mined.
-- Native transfers are checked against the recipient and value.
-- ERC-20 transfers are checked through the configured token contract's `Transfer` event.
-- The payer, recipient, currency, and exact amount must match.
-- A payment proof cannot purchase a different requirement.
+The preview shows listing metadata, not the private text being sold.
 
-## Custody and fees
+## Buyer flow
 
-The current implementation sends payments directly to creators. It reports a facilitator fee of zero and does not submit transfers for buyers.
+The buyer opens the link and reviews its price and payment requirement. The wallet submits the required transfer to the creator's address. Olanas verifies the chain, payer, recipient, asset, amount, and confirmations before releasing the stored content.
 
-<Info>
-  This application uses a custom payment proof around HTTP status `402`. Compatibility with another x402 implementation should not be assumed.
-</Info>
+The protected download route is `GET /api/paywalls/:id/download`. A request without proof receives an HTTP 402 challenge.
 
-## Content storage
+## Storage
 
-Uploaded content is encrypted before local persistence. Optional IPFS pinning uploads ciphertext, not plaintext. Operators must back up the encrypted data and the configured vault secret together.
+The server encrypts content before storing it. Optional IPFS pinning uploads ciphertext. Operators must preserve the encrypted assets and vault secret together to keep downloads recoverable.
+
+Encryption at rest does not prevent a buyer from saving or redistributing content after an authorized download.
+
+## Choose the right workflow
+
+Use **Launch API** for a service that processes requests and returns computed or fetched results. Use **Sell files** for a document, dataset, archive, or text that buyers download after payment.

@@ -1,52 +1,45 @@
 ---
-title: "User quickstart"
-description: "A safe first-run guide for creators and buyers."
+title: "Launch and use an API"
+description: "Publish a project on Olanas, then discover and request paid APIs."
 ---
 
-Choose the path that matches what you want to do.
+## Publish your API
 
-<Tabs>
-  <Tab title="Buy content" icon="cart-shopping">
-    <Steps>
-      <Step title="Open an official paywall link">
-        Confirm the domain was shared through an official Olanas source. Do not connect a wallet through links sent by unknown accounts.
-      </Step>
-      <Step title="Review the requirement">
-        Check the network, currency, exact amount, and creator address before approving anything.
-      </Step>
-      <Step title="Connect and switch networks">
-        Connect a compatible wallet. The application may ask the wallet to switch to Robinhood Chain mainnet (4663).
-      </Step>
-      <Step title="Approve the transfer">
-        Read the wallet confirmation carefully. Olanas does not need your seed phrase or private key.
-      </Step>
-      <Step title="Wait for confirmation">
-        Keep the page open while the transfer is mined and verified. The application retains the pending transaction hash within the current tab to help recover an interrupted download.
-      </Step>
-    </Steps>
-  </Tab>
-  <Tab title="Publish content" icon="upload">
-    <Steps>
-      <Step title="Connect the creator wallet">
-        Use the address that should receive buyer payments.
-      </Step>
-      <Step title="Add content and pricing">
-        Upload a supported file or enter text, then choose a configured currency and exact price.
-      </Step>
-      <Step title="Sign the listing">
-        Sign the listing message in your wallet. Signing authenticates the listing; it is not an onchain transfer.
-      </Step>
-      <Step title="Store the paywall link">
-        Test the link, then share it with your audience through trusted channels.
-      </Step>
-    </Steps>
-  </Tab>
-</Tabs>
+1. Open [Olanas](https://olanas.xyz) and select **Launch API**.
+2. Connect the creator wallet. The website uses this wallet as the listing's payout address.
+3. Enter your project name, description, category, and public HTTP or HTTPS endpoint. Enable only the methods your API supports.
+4. Choose the price per request and a currency offered by the deployment. The launch form selects USDG by default when available.
+5. Add a logo or demo video if useful. Upload an OpenAPI 3.0 or 3.1 JSON document to help agents understand your API's operations and inputs.
+6. Review the listing and sign the creation message. Publishing authenticates the listing with a wallet signature; it is not a buyer payment.
+7. Save the resulting gateway URL and check the project in **Explore**. Use **My projects** to review and manage your listings.
 
-<Warning>
-  Blockchain transfers are generally irreversible. Confirm the network, token contract, amount, and recipient in your wallet before signing.
-</Warning>
+Your API must already be hosted and reachable. Localhost and private-network destinations are rejected. Olanas forwards paid requests to your endpoint; it does not host your application code.
 
-## Testnet first
+For endpoint paths and schema details, read [Publish an API](/developers/overview).
 
-Developers and first-time testers should use Robinhood Chain Testnet. Testnet assets have no monetary value and must never be presented as mainnet funds.
+## Discover an API
+
+Open **Explore** on [the website](https://olanas.xyz), or connect an agent to the remote MCP endpoint at `https://olanas.xyz/mcp`.
+
+An agent uses `search_apis` to find live listings and `get_api_details` to inspect the selected service. Check the method, operation path, input schema, accepted currency, and price before preparing a request.
+
+## Make a human-approved agent request
+
+1. Choose a service and prepare its exact request input.
+2. Call `new_order_identity` once and save the returned request ID and private access token.
+3. Call `create_order` with those identifiers, the service slug, method, relative path, and body.
+4. Open the returned private approval link. Review the input and quote, sign the order approval, and confirm the payment in your wallet.
+5. Let the order verify the submitted transaction and execute the API request.
+6. Use `get_order` to retrieve the saved result. Use `reconcile_order` to check the original submitted payment when confirmation or delivery is still pending.
+
+Keep the same identifiers when recovering an interrupted order. A new request ID means a new intended purchase.
+
+## Enable local agent payments
+
+For requests without a browser approval on every purchase, install the local wallet companion and enable an owner-controlled spending session. Follow [AI agents and MCP](/developers/agents). Connecting only the website MCP server does not enable autonomous payments.
+
+## Before paying
+
+The current website uses **Robinhood Chain mainnet (4663)**. Fund the paying wallet with the listing's payment asset and ETH for network fees. Review the quoted recipient and amount. Payment confirmation and API success are separate: an upstream API can return an error after a valid payment.
+
+For integration work without spending funds, use the repository's isolated automated tests. This website does not offer a testnet network selection.

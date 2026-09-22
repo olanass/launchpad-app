@@ -1,32 +1,34 @@
 ---
-title: "Audits and disclosures"
-description: "Security review status and responsible disclosure expectations."
+title: "Security and operational limits"
+description: "Safeguards and limitations of the API launchpad and paid request flow."
 ---
 
-## Audit status
+## Review status
 
-| Component | Reviewer | Date | Report | Status |
-| --- | --- | --- | --- | --- |
-| OLANAS token contract | Source verified on Blockscout | September 18, 2026 | [Verified source](https://robinhoodchain.blockscout.com/address/0x9400eB66B1320050A68F25A624985a674F033902?tab=contract) | No independent audit published |
-| Vesting contracts | Not published | — | — | Not audited in this repository |
-| Content-paywall application | Not published | — | — | Independent audit not listed |
+An independent security audit of the launchpad and durable-order flow is not documented here. Automated tests, source verification, and a successful build are not independent audits.
 
-<Warning>
-  The absence of a published audit means users should not assume the contracts or application have received an independent security review. An audit also does not eliminate risk.
-</Warning>
+Token contract source verification is separate from application security. See [Contract and networks](/token/contract-and-networks) for the token reference.
 
-## Current safeguards
+## Implemented safeguards
 
-The application includes exact-amount validation, chain and recipient checks, confirmed-transaction requirements, payment replay controls, creator signatures, encrypted storage, and production disabling of demo proofs.
+- Creator signatures bind API listing creation and management actions.
+- Endpoint checks reject local and private-network destinations and pin validated DNS addresses.
+- Payment verification checks network, successful receipt, confirmations, payer, recipient, asset, and amount.
+- Durable approvals bind the exact request and versioned quote.
+- Order state and payment redemptions are stored durably to prevent duplicate purchase processing.
+- Production disables demo payment proofs.
+- Order responses use private access credentials and no-store caching.
 
-## Known operational limits
+## Operational limits
 
-- Live wallet and settlement behavior still requires end-to-end validation before use with material funds.
-- Local file persistence is designed for a single server process, not horizontally scaled workers.
-- Wallet transaction replacement requires manual attention.
-- Losing the vault secret can make encrypted content unrecoverable.
-- Previously exposed plaintext or preview copies cannot be recalled.
+Projects remain responsible for their upstream API, data, uptime, and input validation. A catalog listing does not guarantee the quality or safety of its result.
 
-## Responsible disclosure
+An onchain payment may confirm even when the upstream returns an error. If execution becomes ambiguous after a timeout or crash, the order is not automatically replayed. Arbitrary third-party services cannot be promised exactly-once execution.
 
-A dedicated security contact and disclosure policy have not been added yet. Before production launch, publish a monitored email address, expected response window, safe-harbor language, eligible systems, and rules for handling sensitive reports.
+Production needs durable database configuration. File-paywall assets have additional storage and vault-secret requirements; the file store should not be confused with the API catalog and order database.
+
+## Reporting an issue
+
+Do not publish wallet secrets, order access tokens, private approval links, or paid response data in a public issue. Share a minimal reproduction with secrets removed through a verified project contact.
+
+For integration testing, use isolated fixtures and mocked payments first. A funded wallet transaction is a separate check from passing the automated test suite.

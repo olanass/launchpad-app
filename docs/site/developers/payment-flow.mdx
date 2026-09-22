@@ -1,50 +1,66 @@
 ---
-title: "Payment flow"
-description: "The HTTP 402-inspired request, transfer, verification, and delivery flow."
+title: "Requests, payments, and results"
+description: "How agents authorize paid API requests and recover results without paying twice."
 ---
 
-## Download handshake
+Olanas supports two API integration paths: **durable orders** for request-specific approval and saved results, and the **direct x402 gateway** for clients that manage payment proofs themselves.
 
-<Steps>
-  <Step title="Request content">
-    The client requests `GET /api/paywalls/:id/download` without a payment proof.
-  </Step>
-  <Step title="Read the payment requirement">
-    The server returns HTTP `402` with the exact network, currency, amount, recipient, and resource requirement.
-  </Step>
-  <Step title="Submit the transfer">
-    The buyer wallet sends the exact native or configured ERC-20 transfer on the required chain.
-  </Step>
-  <Step title="Encode the proof">
-    The client base64-encodes a JSON proof containing the scheme, transaction hash, and payer.
-  </Step>
-  <Step title="Retry the download">
-    The client sends the proof in the `PAYMENT-SIGNATURE` header. After verification, the server returns the content and a `PAYMENT-RESPONSE` receipt.
-  </Step>
-</Steps>
+Both verify payments on Robinhood Chain mainnet. The wallet sends the payment; Olanas verifies it before calling the project's endpoint.
 
-```js Proof shape
-const proof = {
+## Durable orders
+
+| Stage | Behavior |
+| --- | --- |
+| Prepare | An order snapshots the service, exact request, price, asset, recipient, chain, and quote expiry. |
+| Approve | The owner or an authorized local signer signs the request-specific approval. |
+| Pay | The wallet submits the quoted transfer. Its original transaction hash is attached to the order. |
+| Reconcile | Olanas verifies that transfer and claims the approved execution. |
+| Deliver | Olanas calls the endpoint and stores the response status, content type, and body. |
+| Read again | The client retrieves the saved result from the same order without a new transfer or execution. |
+
+Approval is a signature; payment is a separate onchain transfer. Preparing an order does not pay or execute the service.
+
+### Recovery rules
+
+Keep the original order ID, request ID, access token, and submitted transaction hash.
+
+- Read `get_order` to inspect status and saved results.
+- Use `reconcile_order` to check the original submitted transfer and finish eligible delivery. It does not sign or send a new payment.
+- Refresh an expired quote through the approval flow before paying.
+- Rejected orders require explicit reopening; an agent must not create a replacement to bypass rejection.
+- A saved HTTP error response means the API responded unsuccessfully. Payment may still have succeeded.
+- Unknown delivery means the upstream may already have executed. Stop and investigate rather than automatically retrying or paying again.
+
+The engine records execution before contacting the upstream and sends an `Idempotency-Key` with the order ID. This supports recovery but does not promise exactly-once behavior in the project's own application.
+
+## Direct x402 gateway
+
+1. Request an allowed operation at `/x402/:slug` or its relative operation path.
+2. Without proof, the gateway returns HTTP `402 Payment Required` with a `PAYMENT-REQUIRED` header describing the asset, amount, chain, and recipient.
+3. An authorized wallet sends the required transfer and waits for confirmation.
+4. Repeat the request with a base64-encoded proof in `PAYMENT-SIGNATURE`.
+5. After verification, the gateway forwards the request and returns the upstream response with payment receipt metadata.
+
+Proof shape:
+
+```js
+const paymentSignature = Buffer.from(JSON.stringify({
   scheme: 'onchain-tx',
-  txHash: '0x...',
-  payer: '0x...'
-};
-
-const header = btoa(JSON.stringify(proof));
+  txHash: confirmedTransactionHash,
+  payer: payingWalletAddress
+})).toString('base64');
 ```
 
-## Idempotent recovery
+The verifier checks the RPC network, successful transaction, confirmations, payer, recipient, asset, and exact amount. A confirmed proof cannot purchase a different payment requirement.
 
-The confirmed transaction hash and payer identify the proof. A valid proof may be reused for the same resource, recipient, token, and amount to recover an interrupted delivery. It cannot settle a different payment requirement.
+A successfully consumed direct-gateway receipt cannot execute another request. The direct gateway can mark failed upstream attempts retryable, but it does not provide the durable-order result-retrieval contract. For requests with side effects or uncertain delivery, use the order workflow and inspect the original outcome.
 
-## Paid API handshake
+## Compatibility
 
-Requests to `/x402/:slug/*` follow the same payment-proof exchange. The initial `402` response includes an x402 v2-shaped `PAYMENT-REQUIRED` envelope with the `onchain-tx` confirmed-transaction scheme.
+The implementation uses **x402 v2-shaped discovery and challenge envelopes** with the `onchain-tx` confirmed-transfer scheme. It is not the standard `exact` settlement scheme and does not submit a transfer for the client. Check scheme support when integrating another x402 client.
 
-After a proof is verified, the launchpad reserves its durable receipt before forwarding the original method, path, query, content type, and body to the developer endpoint. A `2xx` or `3xx` upstream response completes the receipt and records revenue. If the upstream fails, the receipt becomes retryable and revenue remains unchanged.
+Demo proofs are available only in explicitly enabled non-production demo mode. They move no funds.
 
-This is compatible discovery and challenge metadata for confirmed Robinhood Chain transactions. It is not the standard x402 `exact` settlement scheme and does not submit a transaction on the buyer's behalf.
+## File downloads
 
-<Info>
-  Demo `exact` and `sandbox` proofs are available only when explicit demo mode is enabled outside production. They move no funds and never fabricate transaction hashes.
-</Info>
+Sell files uses a separate route, `GET /api/paywalls/:id/download`. It challenges for payment and releases the stored content after verification. See [Sell files](/ecosystem/content-payments); API order behavior should not be inferred from file-download retries.
