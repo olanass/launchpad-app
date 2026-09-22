@@ -41,8 +41,11 @@ body[data-view='docs'] .docs-app-shell {
 }
 .docs-app-shell .docs-sidebar { padding: 32px 16px; background: var(--ui-bg); border-color: var(--ui-line); }
 .docs-app-shell .docs-main { background: var(--ui-bg); }
-.docs-app-shell .docs-brand { color: var(--ui-ink); padding: 0 8px 24px; }
-.docs-app-shell .docs-brand img { background: #fff; border-radius: 8px; padding: 4px; width: 40px; height: 40px; }
+.docs-app-shell .docs-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; color: var(--ui-ink); padding: 12px 12px 24px; }
+.docs-app-shell .docs-brand img { display: block; background: transparent; border-radius: 0; padding: 0; width: 184px; height: auto; }
+.docs-app-shell .docs-brand .docs-logo-dark { display: none; }
+html[data-theme='dark'] .docs-app-shell .docs-brand .docs-logo-light { display: none; }
+html[data-theme='dark'] .docs-app-shell .docs-brand .docs-logo-dark { display: block; }
 .docs-app-shell .docs-brand span { color: var(--ui-muted); font-size: 12px; }
 .docs-search-label { display: block; margin-bottom: 8px; font-size: 12px; color: var(--ui-muted); }
 .docs-app-shell .docs-search { min-height: 44px; border-radius: 8px; border-color: var(--docs-control-border); background: var(--ui-surface); color: var(--ui-muted); }
