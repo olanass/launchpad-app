@@ -47,7 +47,10 @@ app.get('/llms.txt', (req, res) => res.type('text/plain').sendFile(path.join(GEN
 app.get(/^\/docs\/(.+)\.md$/, (req, res, next) => {
   const relative = String(req.params[0] || '').replace(/\\/g, '/');
   if (!/^[a-z0-9/_-]+$/i.test(relative) || relative.includes('..')) return next();
-  return res.type('text/markdown').sendFile(path.join(GENERATED_DIR, 'docs-markdown', relative + '.md'));
+  const slug = relative === 'home' ? 'index' : relative;
+  return res.type('text/markdown').sendFile(slug + '.md', {
+    root: path.join(GENERATED_DIR, 'docs-markdown')
+  });
 });
 
 const staticOptions = {

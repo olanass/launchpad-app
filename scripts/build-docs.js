@@ -5,6 +5,10 @@ const projectRoot = path.resolve(__dirname, '..');
 const docsRoot = path.join(projectRoot, 'docs', 'site');
 const generatedRoot = path.join(projectRoot, 'src', 'client', 'generated');
 
+function markdownPageUrl(slug) {
+  return `https://olanas.xyz/docs/${slug === 'index' ? 'home' : slug}.md`;
+}
+
 function readPage(slug) {
   const candidates = [path.join(docsRoot, slug + '.mdx'), path.join(docsRoot, slug + '.md')];
   const file = candidates.find(candidate => fs.existsSync(candidate));
@@ -112,7 +116,7 @@ async function buildDocs() {
     'MCP endpoint: https://olanas.xyz/mcp',
     'API discovery: https://olanas.xyz/discovery/resources',
     '',
-    ...slugs.flatMap(slug => [`## ${pages[slug].title}`, '', `Source: https://olanas.xyz/docs/${slug}.md`, '', markdownPages[slug], ''])
+    ...slugs.flatMap(slug => [`## ${pages[slug].title}`, '', `Source: ${markdownPageUrl(slug)}`, '', markdownPages[slug], ''])
   ].join('\n');
   fs.writeFileSync(path.join(generatedRoot, 'llms.txt'), llms);
   console.log(`Documentation portal built with ${slugs.length} pages.`);

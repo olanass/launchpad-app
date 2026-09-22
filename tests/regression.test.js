@@ -63,6 +63,15 @@ test('proxy: pinned DNS supports Node automatic family selection and single-addr
     await new Promise(resolve => upstream.close(resolve));
   }
 });
+test('docs: Markdown home alias and existing machine-readable links remain available', async () => {
+  for (const route of ['/docs/home.md', '/docs/index.md']) {
+    const response = await fetch(base + route);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('content-type'), /text\/markdown/);
+    assert.match(await response.text(), /^# Welcome to Olanas/);
+  }
+});
+
 test.before(async () => {
   server = app.listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));

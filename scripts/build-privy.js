@@ -41,6 +41,9 @@ async function buildClient() {
     fs.cpSync(clientDir, publicDir, { recursive: true });
     fs.copyFileSync(path.join(publicDir, 'generated', 'llms.txt'), path.join(publicDir, 'llms.txt'));
     fs.cpSync(path.join(publicDir, 'generated', 'docs-markdown'), path.join(publicDir, 'docs'), { recursive: true });
+    // Vercel normalizes a static docs/index.md to /docs, shadowing the UI.
+    // Keep the downloadable Markdown home under a non-index filename.
+    fs.renameSync(path.join(publicDir, 'docs', 'index.md'), path.join(publicDir, 'docs', 'home.md'));
 
     console.log('Privy bridge created at src/client/generated/privy-bridge.bundle.js');
     console.log('Vercel static assets copied to public/.');

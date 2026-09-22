@@ -17,6 +17,12 @@ async function main() {
   assert.ok(networks.networks.some(item => item.id.startsWith('robinhood-chain')));
   await check('/discovery/resources', 'application/json');
   await check('/llms.txt', 'text/plain');
+  for (const route of ['/docs', '/docs/ecosystem/roadmap']) {
+    const docs = await (await check(route, 'text/html')).text();
+    assert.ok(docs.includes('id="docsArticle"'), route + ' must serve the documentation UI');
+  }
+  const markdownHome = await (await check('/docs/home.md', 'text/markdown')).text();
+  assert.ok(markdownHome.startsWith('# Welcome to Olanas'), 'Markdown home must remain available separately');
   await check('/docs/developers/agents.md', 'text/markdown');
   const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
   const { StreamableHTTPClientTransport } = require('@modelcontextprotocol/sdk/client/streamableHttp.js');
