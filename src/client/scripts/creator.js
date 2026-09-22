@@ -11,7 +11,7 @@ function initFileUpload() {
   if (!dropZone || !fileInput || !filePreview || !btnRemove) return;
 
   dropZone.addEventListener('click', (event) => {
-    if (event.target !== btnRemove && !btnRemove.contains(event.target)) {
+    if (event.target !== fileInput && event.target !== btnRemove && !btnRemove.contains(event.target)) {
       fileInput.click();
     }
   });
@@ -45,6 +45,7 @@ function initFileUpload() {
     fileInput.value = '';
     document.getElementById('uploadPrompt').style.display = 'block';
     filePreview.style.display = 'none';
+    updateSellPreview();
   });
 
   const toggleTextBtn = document.getElementById('btnToggleTextInput');
@@ -53,9 +54,25 @@ function initFileUpload() {
     toggleTextBtn.addEventListener('click', () => {
       const opening = textWrapper.style.display === 'none';
       textWrapper.style.display = opening ? 'block' : 'none';
+      toggleTextBtn.setAttribute('aria-expanded', String(opening));
       if (opening) document.getElementById('textContentInput')?.focus();
     });
   }
+  ['assetTitle', 'assetDesc', 'assetPrice', 'assetCurrency', 'textContentInput'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateSellPreview);
+  });
+  updateSellPreview();
+}
+
+function updateSellPreview() {
+  const title = document.getElementById('sellPreviewTitle');
+  if (!title) return;
+  title.textContent = document.getElementById('assetTitle').value.trim() || 'Your next digital download';
+  document.getElementById('sellPreviewDescription').textContent = document.getElementById('assetDesc').value.trim() || 'Add a title and description to show buyers what they will unlock.';
+  const text = document.getElementById('textContentInput').value.trim();
+  document.getElementById('sellPreviewFile').textContent = state.selectedFile ? state.selectedFile.name : (text ? 'Text content' : 'No content selected');
+  const price = document.getElementById('assetPrice').value.trim();
+  document.getElementById('sellPreviewPrice').textContent = Number(price) > 0 ? `${price} ${document.getElementById('assetCurrency').value}` : 'Set your price';
 }
 
 function handleFileSelected(file) {
@@ -75,6 +92,7 @@ function handleFileSelected(file) {
   if (!titleInput.value.trim()) {
     titleInput.value = file.name.replace(/\.[^/.]+$/, '');
   }
+  updateSellPreview();
 }
 
 function formatBytes(bytes) {
@@ -109,6 +127,7 @@ function initPaywallCreation() {
       const isClosed = advanceDropdownBody.style.display === 'none';
       advanceDropdownBody.style.display = isClosed ? 'block' : 'none';
       btnToggleAdvance.classList.toggle('open', isClosed);
+      btnToggleAdvance.setAttribute('aria-expanded', String(isClosed));
     });
   }
 
@@ -262,7 +281,7 @@ async function handlePublishPaywall() {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       </svg>
-      Sign with Wallet & Generate URL
+      Sign and create link
     `;
   }
 }

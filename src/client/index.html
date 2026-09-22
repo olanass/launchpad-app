@@ -392,9 +392,9 @@
     <section id="view-create" class="app-view">
       <div class="studio-container">
         <div class="studio-header">
-          <span class="studio-eyebrow"><span class="studio-eyebrow-dot"></span> Secure file sales</span>
-          <h1 class="studio-title">Sell files with a <span>simple payment link.</span></h1>
-          <p class="studio-desc">Upload a file or paste private content, choose a price, and publish a wallet-signed x402 link. Buyers unlock the original content after payment.</p>
+          <span class="studio-eyebrow">SELL FILES / ROBINHOOD CHAIN</span>
+          <h1 class="studio-title">Your work.<br><span>One payment link.</span></h1>
+          <p class="studio-desc">Upload your file, set a price, and share a link. Buyers pay to unlock the original content.</p>
           <div class="studio-proof-row" aria-label="Sell files benefits">
             <span class="studio-proof">Encrypted storage</span>
             <span class="studio-proof">Direct wallet payments</span>
@@ -405,13 +405,13 @@
         <div class="studio-grid">
           
           <!-- Published Result Card (Shown after creation) -->
-          <div class="card success-card" id="successCard" style="display: none; margin-bottom: 24px;">
+          <div class="card success-card" id="successCard" role="status" style="display: none; margin-bottom: 24px;">
             <div class="success-icon-badge">✓</div>
             <h3 class="success-title">Paywall Published!</h3>
             <p class="success-desc">Your signed paywalled URL is live on Robinhood Chain.</p>
 
             <div class="url-copy-box">
-              <input type="text" id="generatedUrlInput" class="url-input" readonly />
+              <input type="text" id="generatedUrlInput" class="url-input" aria-label="Published payment link" readonly />
               <button type="button" class="btn btn-copy" id="btnCopyUrl">Copy</button>
             </div>
 
@@ -444,11 +444,11 @@
             <!-- Step 1: Upload Asset -->
             <div class="step-section">
               <div class="step-badge-row">
-                <span class="step-badge">1</span>
-                <span class="step-label">Upload Content or Document</span>
+                <span class="step-badge">01</span>
+                <h2 class="step-label">Add your content</h2>
               </div>
 
-              <div class="upload-zone" id="dropZone">
+              <div class="upload-zone" id="dropZone" role="group" aria-label="File upload">
                 <input type="file" id="fileInput" class="file-input-hidden" />
                 <div class="upload-prompt" id="uploadPrompt">
                   <div class="upload-icon-circle">
@@ -458,8 +458,9 @@
                       <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
                   </div>
-                  <div class="upload-title">Click to upload or drag & drop</div>
+                  <div class="upload-title">Drop your file here</div>
                   <div class="upload-subtitle">PDF, ZIP, JSON, CSV, MP4, PNG, Code, or Text files</div>
+                  <button type="button" class="btn btn-secondary" id="btnBrowseFile">Choose a file</button>
                 </div>
 
                 <!-- File Info Card (Visible after upload) -->
@@ -477,36 +478,38 @@
 
               <!-- Or Text Content Tab -->
               <div class="text-fallback-toggle">
-                <button type="button" class="text-link-btn" id="btnToggleTextInput">Or paste private text/code directly</button>
+                <button type="button" class="text-link-btn" id="btnToggleTextInput" aria-expanded="false" aria-controls="textInputWrapper">Or paste text instead</button>
               </div>
 
               <div class="text-input-wrapper" id="textInputWrapper" style="display: none;">
-                <textarea id="textContentInput" class="form-textarea" rows="4" placeholder="Enter private content, API keys, AI prompts, or confidential notes to be locked behind the paywall..."></textarea>
+                <label for="textContentInput">Text to unlock</label>
+                <textarea id="textContentInput" class="form-textarea" rows="4" placeholder="Paste the content buyers will receive after payment." aria-describedby="textContentHelp"></textarea>
+                <p class="sell-field-help" id="textContentHelp">If a file is selected, the file is used instead of this text.</p>
               </div>
             </div>
 
             <!-- Step 2: Metadata & Pricing -->
             <div class="step-section">
               <div class="step-badge-row">
-                <span class="step-badge">2</span>
-                <span class="step-label">Set Title & Price</span>
+                <span class="step-badge">02</span>
+                <h2 class="step-label">Make it yours</h2>
               </div>
 
               <div class="form-group">
-                <label for="assetTitle">Title / Display Name</label>
-                <input type="text" id="assetTitle" class="form-control" placeholder="e.g. Robinhood Chain Quant Strategy & Code" />
+                <label for="assetTitle">Listing title</label>
+                <input type="text" id="assetTitle" class="form-control" placeholder="e.g. Onchain research report" />
               </div>
 
               <div class="form-row">
                 <div class="form-group col-half">
-                  <label for="assetPrice">Price per Unlock</label>
+                  <label for="assetPrice">Price per unlock</label>
                   <div class="input-with-icon">
                     <input type="number" id="assetPrice" class="form-control" placeholder="Enter an amount" step="any" min="0.000000000000000001" />
                   </div>
                 </div>
 
                 <div class="form-group col-half">
-                  <label for="assetCurrency">Currency (Robinhood Chain)</label>
+                  <label for="assetCurrency">Payment currency</label>
                   <select id="assetCurrency" class="form-control">
                     <option value="USDC">USDC (USD Coin)</option>
                     <option value="ETH">ETH (Ether)</option>
@@ -516,7 +519,7 @@
 
               <!-- Collapsible Advance Section -->
               <div class="advance-section-wrapper">
-                <button type="button" class="btn-advance-toggle" id="btnToggleAdvance">
+                <button type="button" class="btn-advance-toggle" id="btnToggleAdvance" aria-expanded="false" aria-controls="advanceDropdownBody">
                   <div class="advance-toggle-left">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <line x1="4" y1="21" x2="4" y2="14"></line>
@@ -529,7 +532,7 @@
                       <line x1="9" y1="8" x2="15" y2="8"></line>
                       <line x1="17" y1="16" x2="23" y2="16"></line>
                     </svg>
-                    <span>Advance</span>
+                    <span>More listing options</span>
                   </div>
                   <span class="advance-chevron" id="advanceChevron">▼</span>
                 </button>
@@ -557,14 +560,14 @@
             <!-- Step 3: Real Gas Fee Inspector & Sign -->
             <div class="step-section">
               <div class="step-badge-row">
-                <span class="step-badge">3</span>
-                <span class="step-label">Robinhood Chain Gas & Creator Signature</span>
+                <span class="step-badge">03</span>
+                <h2 class="step-label">Sign and share</h2>
               </div>
 
               <!-- Real Gas Fee Card -->
               <div class="gas-estimate-card">
                 <div class="gas-card-header">
-                  <span class="gas-card-title">Real-Time Network Gas Fee (Arbitrum Orbit L2)</span>
+                  <span class="gas-card-title">Network estimates</span>
                         <span class="badge-l2" id="creatorChainBadge">Chain ID: 4663</span>
                 </div>
                 <div class="gas-card-grid">
@@ -589,14 +592,34 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
-                  Sign with Wallet & Generate URL
+                  Sign and create link
                 </button>
+                <p class="sell-field-help sell-sign-note">Connect your wallet and approve a signature to create your listing.</p>
               </div>
             </div>
 
           </div>
 
-
+          <aside class="sell-summary" aria-label="Listing preview">
+            <div class="sell-summary-heading"><span>LISTING PREVIEW</span><span class="sell-draft">Draft</span></div>
+            <div class="sell-preview-card">
+              <div class="sell-preview-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
+              <h2 id="sellPreviewTitle">Your next digital download</h2>
+              <p id="sellPreviewDescription">Add a title and description to show buyers what they will unlock.</p>
+              <div class="sell-preview-content"><span>Content</span><strong id="sellPreviewFile">No content selected</strong></div>
+              <div class="sell-preview-price"><span>Price per unlock</span><strong id="sellPreviewPrice">Set your price</strong></div>
+              <p class="sell-preview-caption">Preview only. Your link is created after you sign.</p>
+            </div>
+            <div class="sell-how-it-works">
+              <h2>From file to first sale.</h2>
+              <ol>
+                <li><strong>Create your link</strong><span>Set the content and price, then sign with your wallet.</span></li>
+                <li><strong>Share anywhere</strong><span>Send your payment link to your audience.</span></li>
+                <li><strong>Payment unlocks access</strong><span>Buyers receive your content after payment is verified.</span></li>
+              </ol>
+              <a href="/docs/ecosystem/content-payments">Read the file payments guide <span aria-hidden="true">↗</span></a>
+            </div>
+          </aside>
         </div>
 
       </div>
