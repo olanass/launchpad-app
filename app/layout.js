@@ -1,7 +1,7 @@
 import './globals.css';
 import { headers } from 'next/headers';
 
-const title = 'x402 Launchpad — Paid APIs on Robinhood Chain';
+const title = 'x402 Launchpad - Paid APIs on Robinhood Chain';
 const description = 'Launch, discover, and monetize APIs with x402 payments on Robinhood Chain.';
 
 export async function generateMetadata() {
@@ -19,7 +19,7 @@ export async function generateMetadata() {
     title,
     description,
     referrer: 'no-referrer',
-    icons: { icon: '/assets/favicon.png' },
+    icons: { icon: '/assets/favicon.png?v=20260923' },
     openGraph: {
       title,
       description,
