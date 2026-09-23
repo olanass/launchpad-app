@@ -261,7 +261,7 @@ async function loadServiceMarketplace() {
         <div class="product-card-top"><span class="product-category">${escapeServiceHtml(service.category)}</span><span class="product-live"><i></i> ${escapeServiceHtml(service.status)}</span></div>
         <div class="product-icon">${service.logoUrl ? `<img src="${escapeServiceHtml(service.logoUrl)}" alt="${escapeServiceHtml(service.name)} logo">` : escapeServiceHtml(serviceInitial(service.name))}</div>
         <h3>${escapeServiceHtml(service.name)}</h3><p>${escapeServiceHtml(service.description || 'A paid API on Robinhood Chain.')}</p>
-        <div class="product-metrics"><div><span>Price</span><strong>$${escapeServiceHtml(service.price)}</strong><small>/ request</small></div><div><span>Paid calls</span><strong>${shortNumber(service.requests)}</strong><small>${escapeServiceHtml(service.currency)}</small></div></div>
+        <div class="product-metrics"><div><span>Price</span><strong>${escapeServiceHtml(service.price)} ${escapeServiceHtml(service.currency)}</strong><small>/ request</small></div><div><span>Paid calls</span><strong>${shortNumber(service.requests)}</strong><small>${escapeServiceHtml(service.currency)}</small></div></div>
         <div class="product-card-foot"><span><i></i> Robinhood Chain</span><span class="market-card-requests">View API ↗</span></div>
       </article>`).join('');
   } catch (error) { grid.innerHTML = `<div class="market-empty">${escapeServiceHtml(error.message)}</div>`; }
@@ -287,7 +287,7 @@ async function loadServiceDetail(slug) {
     else detailIcon.textContent = serviceInitial(service.name);
     document.getElementById('detailName').textContent = service.name;
     document.getElementById('detailDescription').textContent = service.description;
-    document.getElementById('detailPrice').textContent = `$${service.price}`;
+    document.getElementById('detailPrice').textContent = `${service.price} ${service.currency}`;
     document.getElementById('detailNetwork').textContent = ROBINHOOD_CHAIN_NAME.replace(' Chain', '');
     document.getElementById('detailToken').textContent = service.currency;
     document.getElementById('detailRequests').textContent = Number(service.requests || 0).toLocaleString();
