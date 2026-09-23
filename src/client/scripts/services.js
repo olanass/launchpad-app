@@ -282,6 +282,7 @@ async function loadServiceDetail(slug) {
     serviceUiState.currentService = service;
     document.getElementById('detailCategory').textContent = service.category;
     document.getElementById('detailStatus').textContent = service.status;
+    document.getElementById('detailStatus').parentElement.dataset.status = service.status;
     const detailIcon = document.getElementById('detailIcon');
     if (service.logoUrl) detailIcon.innerHTML = `<img src="${escapeServiceHtml(service.logoUrl)}" alt="${escapeServiceHtml(service.name)} logo">`;
     else detailIcon.textContent = serviceInitial(service.name);

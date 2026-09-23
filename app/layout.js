@@ -46,7 +46,7 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
-        <link href="/styles/app.css?v=20260919-footer-spacing" rel="stylesheet" />
+        <link href="/styles/app.css?v=20260923-listing-design" rel="stylesheet" />
         <script
           type="importmap"
           dangerouslySetInnerHTML={{
