@@ -287,7 +287,7 @@ async function loadServiceDetail(slug) {
     else detailIcon.textContent = serviceInitial(service.name);
     document.getElementById('detailName').textContent = service.name;
     document.getElementById('detailDescription').textContent = service.description;
-    document.getElementById('detailPrice').textContent = `${service.price} ${service.currency}`;
+    document.getElementById('detailPrice').textContent = service.price;
     document.getElementById('detailNetwork').textContent = ROBINHOOD_CHAIN_NAME.replace(' Chain', '');
     document.getElementById('detailToken').textContent = service.currency;
     document.getElementById('detailRequests').textContent = Number(service.requests || 0).toLocaleString();

@@ -10,7 +10,7 @@ const classicScripts = [
   '/scripts/wallet.js',
   '/scripts/gas.js',
   '/scripts/creator.js',
-  '/scripts/services.js',
+  '/scripts/services.js?v=amount-only-20260923',
   '/scripts/payments.js',
   '/generated/orders-wallet.bundle.js',
   '/scripts/orders.js',
