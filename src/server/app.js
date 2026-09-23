@@ -38,6 +38,8 @@ if (ROBINHOOD_CHAIN_CONFIG.demoMode) app.use('/api', demoApiRouter);
 app.use('/api/paywalls', paywallRouter);
 app.use('/api/services', serviceJsonParser, serviceRouter);
 app.use('/api/orders', require('./orders/routes'));
+app.use('/api/inference', require('./inference/gateway').router);
+app.use('/api/inference/escrow', require('./inference/escrow').createEscrowRouter());
 app.get('/discovery/resources', discoveryHandler);
 app.use('/x402', serviceGatewayRouter);
 app.use('/api/privy', privyAuthRouter);

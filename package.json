@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "node --test tests/regression.test.js tests/orders.test.js tests/payment-flow.test.mjs tests/orders-console.test.js tests/agent-guide.test.js tests/endpoint-routing.test.js",
+    "test": "node --test tests/regression.test.js tests/orders.test.js tests/payment-flow.test.mjs tests/orders-console.test.js tests/agent-guide.test.js tests/endpoint-routing.test.js tests/inference.test.js tests/inference-escrow.test.js tests/inference-channel-storage.test.js",
     "test:orders": "node --test tests/orders.test.js",
     "test:production": "node --test --test-name-pattern=production: tests/regression.test.js",
     "test:handshake": "node --test --test-name-pattern=handshake: tests/regression.test.js",
@@ -36,6 +36,9 @@
     "@privy-io/js-sdk-core": "^0.76.0",
     "@privy-io/node": "^0.34.0",
     "@privy-io/react-auth": "^3.43.0",
+    "@x402/core": "2.27.0",
+    "@x402/evm": "2.27.0",
+    "@x402/express": "2.27.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "cors": "^2.8.5",
