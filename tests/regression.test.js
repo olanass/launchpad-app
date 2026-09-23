@@ -411,6 +411,23 @@ test('services: signed launch, private metadata, paid proxy and analytics', asyn
     assert.equal(creatorList.services.some(item => item.serviceId === service.serviceId), true);
     assert.ok(!JSON.stringify(creatorList).includes('creatorSignature'));
 
+    const categoryChanges = { category: 'Data' };
+    const categoryTimestamp = String(Date.now());
+    const categorySignature = await creator.signMessage(managementMessage('update', service.slug, categoryChanges, categoryTimestamp));
+    const categoryUpdate = await fetch(base + '/api/services/' + service.slug, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ changes: categoryChanges, creatorTimestamp: categoryTimestamp, creatorSignature: categorySignature })
+    });
+    assert.equal(categoryUpdate.status, 200, await categoryUpdate.clone().text());
+    assert.equal((await categoryUpdate.json()).service.category, 'Data');
+    const updatedDetail = await fetch(base + '/api/services/' + service.slug).then(result => result.json());
+    assert.equal(updatedDetail.service.category, 'Data');
+    const tamperedCategory = await fetch(base + '/api/services/' + service.slug, {
+      method: 'PATCH', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ changes: { category: 'Other' }, creatorTimestamp: categoryTimestamp, creatorSignature: categorySignature })
+    });
+    assert.equal(tamperedCategory.status, 403);
+
     const changes = { status: 'paused' };
     const creatorTimestamp = String(Date.now());
     const creatorSignature = await creator.signMessage(managementMessage('update', service.slug, changes, creatorTimestamp));

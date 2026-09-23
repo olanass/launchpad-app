@@ -214,6 +214,10 @@ publicRouter.patch('/:slug', async (req, res, next) => {
       changes.description = String(requested.description).trim();
       if (changes.description.length > 2000) throw Object.assign(new Error('Description is too long'), { status: 400 });
     }
+    if (requested.category != null) {
+      changes.category = String(requested.category).trim();
+      if (!changes.category || changes.category.length > 80) throw Object.assign(new Error('Invalid service category'), { status: 400 });
+    }
     if (requested.videoUrl != null) {
       changes.videoUrl = String(requested.videoUrl).trim();
       if (changes.videoUrl) {
